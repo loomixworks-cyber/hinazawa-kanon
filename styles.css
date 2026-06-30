@@ -2233,3 +2233,60 @@
     min-height: 52px;
   }
 }
+/* Contact panel layout repair */
+.contact-panel {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  align-items: center;
+  gap: clamp(24px, 4vw, 48px);
+}
+
+.contact-panel > div:first-child {
+  min-width: 0;
+}
+
+.contact-actions {
+  width: 100%;
+  min-width: 0;
+  justify-items: stretch;
+  align-content: center;
+}
+
+.contact-actions .button {
+  width: 100%;
+  min-width: 0;
+  padding-inline: 18px;
+  white-space: normal;
+  text-align: center;
+}
+
+.site-qr {
+  justify-self: stretch;
+  width: 100%;
+  max-width: 240px;
+  margin-left: auto;
+}
+
+.site-qr img {
+  height: auto;
+  object-fit: contain;
+}
+
+@media (max-width: 1080px) {
+  .contact-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-actions {
+    max-width: 280px;
+  }
+
+  .site-qr {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .contact-actions {
+    max-width: none;
+  }
+}
