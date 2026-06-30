@@ -2542,3 +2542,28 @@ main,
     animation: none !important;
   }
 }
+
+/* Mobile header appears after scroll */
+@media (max-width: 820px) {
+  .site-header {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(calc(-100% - 18px));
+    transition: opacity .34s ease, transform .34s ease, background .35s ease, box-shadow .35s ease;
+  }
+
+  .mobile-header-visible .site-header,
+  .nav-open .site-header {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .site-nav {
+    transition: opacity .24s ease, transform .24s ease;
+  }
+
+  body:not(.mobile-header-visible):not(.nav-open) .site-nav {
+    display: none;
+  }
+}

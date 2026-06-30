@@ -10,21 +10,28 @@ window.addEventListener("load", () => {
 });
 
 window.setTimeout(() => body.classList.add("loaded"), 1200);
+const updateHeaderState = () => {
+  const isScrolled = window.scrollY > 24;
+  header?.classList.toggle("is-scrolled", isScrolled);
+  body.classList.toggle("mobile-header-visible", window.scrollY > 120 || body.classList.contains("nav-open"));
+};
+
+window.addEventListener("scroll", updateHeaderState, { passive: true });
+window.addEventListener("resize", updateHeaderState);
+updateHeaderState();
 
 menuButton?.addEventListener("click", () => {
   const isOpen = body.classList.toggle("nav-open");
   menuButton.setAttribute("aria-expanded", String(isOpen));
+  updateHeaderState();
 });
 
 navLinks.forEach((link) => {
   link.addEventListener("click", () => {
     body.classList.remove("nav-open");
     menuButton?.setAttribute("aria-expanded", "false");
+    updateHeaderState();
   });
-});
-
-window.addEventListener("scroll", () => {
-  header?.classList.toggle("is-scrolled", window.scrollY > 24);
 });
 
 window.addEventListener("pointermove", (event) => {
