@@ -2630,3 +2630,15 @@ main,
 .news-list span {
   line-height: 1.65;
 }
+/* Compact mobile hero top spacing */
+@media (max-width: 820px) {
+  .hero {
+    padding-top: max(18px, env(safe-area-inset-top));
+  }
+}
+
+@media (max-width: 560px) {
+  .hero {
+    padding-top: max(14px, env(safe-area-inset-top));
+  }
+}
