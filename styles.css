@@ -2620,3 +2620,13 @@ main,
     padding-bottom: 18px;
   }
 }
+/* News list clean layout */
+.news-list a {
+  grid-template-columns: 1fr;
+  gap: 0;
+  min-height: 68px;
+}
+
+.news-list span {
+  line-height: 1.65;
+}
