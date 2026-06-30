@@ -2567,3 +2567,7 @@ main,
     display: none;
   }
 }
+/* News without dates */
+.news-list a {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
