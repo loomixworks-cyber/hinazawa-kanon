@@ -77,3 +77,42 @@ const navObserver = new IntersectionObserver(
 );
 
 sections.forEach((section) => navObserver.observe(section));
+
+const progressBar = document.querySelector(".scroll-progress span");
+const heroCopy = document.querySelector(".hero-copy");
+const heroStage = document.querySelector(".hero-stage");
+const motionCards = [...document.querySelectorAll(".short-card, .long-video-card, .goods-card, .news-list a, .site-qr")];
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+const updateScrollMotion = () => {
+  const scrollMax = document.documentElement.scrollHeight - window.innerHeight;
+  const progress = scrollMax > 0 ? Math.min(1, window.scrollY / scrollMax) : 0;
+  progressBar?.style.setProperty("--scroll-progress", `${progress * 100}%`);
+
+  if (reduceMotion.matches || window.matchMedia("(max-width: 900px)").matches) return;
+  const heroOffset = Math.min(1, window.scrollY / Math.max(1, window.innerHeight));
+  heroCopy?.style.setProperty("translate", `0 ${heroOffset * -16}px`);
+  heroStage?.style.setProperty("translate", `0 ${heroOffset * 24}px`);
+};
+
+window.addEventListener("scroll", updateScrollMotion, { passive: true });
+window.addEventListener("resize", updateScrollMotion);
+updateScrollMotion();
+
+if (!reduceMotion.matches) {
+  motionCards.forEach((card) => {
+    card.addEventListener("pointermove", (event) => {
+      if (window.matchMedia("(max-width: 900px)").matches) return;
+      const rect = card.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width - 0.5;
+      const y = (event.clientY - rect.top) / rect.height - 0.5;
+      card.style.setProperty("--tilt-x", `${x * 5}deg`);
+      card.style.setProperty("--tilt-y", `${y * -5}deg`);
+    });
+
+    card.addEventListener("pointerleave", () => {
+      card.style.setProperty("--tilt-x", "0deg");
+      card.style.setProperty("--tilt-y", "0deg");
+    });
+  });
+}
