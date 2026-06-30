@@ -2290,3 +2290,11 @@
     max-width: none;
   }
 }
+/* QR square rendering fix */
+.site-qr img {
+  inline-size: 100%;
+  block-size: auto;
+  max-inline-size: 100%;
+  aspect-ratio: auto;
+  object-fit: contain;
+}
