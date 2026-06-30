@@ -1971,3 +1971,72 @@
     margin-left: auto;
   }
 }
+/* Contact QR card */
+.contact-actions {
+  display: grid;
+  justify-items: end;
+  gap: 16px;
+  min-width: min(300px, 32vw);
+}
+
+.site-qr {
+  display: grid;
+  gap: 10px;
+  width: min(220px, 100%);
+  margin: 0;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,.82);
+  border-radius: 8px;
+  background: rgba(255,255,255,.84);
+  box-shadow: 0 18px 42px rgba(53,71,149,.14);
+}
+
+.site-qr img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.site-qr figcaption {
+  display: grid;
+  gap: 2px;
+  text-align: center;
+}
+
+.site-qr strong {
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.site-qr span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+@media (max-width: 1080px) {
+  .contact-actions {
+    justify-items: start;
+    min-width: 0;
+  }
+
+  .site-qr {
+    width: min(220px, 68vw);
+  }
+}
+
+@media (max-width: 560px) {
+  .contact-actions {
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .site-qr {
+    justify-self: center;
+    width: min(210px, 72vw);
+  }
+}
