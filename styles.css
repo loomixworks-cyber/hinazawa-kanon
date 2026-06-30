@@ -1614,7 +1614,7 @@
   }
 
   .long-thumb {
-    min-height: 0;
+    min-height: clamp(176px, 52vw, 260px);
   }
 
   .long-video-card > div {
