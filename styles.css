@@ -2571,3 +2571,52 @@ main,
 .news-list a {
   grid-template-columns: minmax(0, 1fr) auto;
 }
+/* Clean hero without quick nav */
+.hero {
+  padding-bottom: clamp(58px, 8vw, 104px);
+}
+
+.hero-copy {
+  align-self: center;
+}
+
+.hero-lead {
+  margin-bottom: 0;
+}
+
+.hero-stage {
+  align-self: center;
+}
+
+@media (min-width: 1081px) {
+  .hero {
+    min-height: 100svh;
+    padding-bottom: clamp(54px, 6vw, 92px);
+  }
+}
+
+@media (max-width: 1080px) {
+  .hero {
+    padding-bottom: 36px;
+  }
+}
+
+@media (max-width: 820px) {
+  .hero {
+    padding-bottom: 24px;
+  }
+
+  .hero-copy {
+    margin-bottom: 0;
+  }
+
+  .hero-stage {
+    margin-top: 2px;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero {
+    padding-bottom: 18px;
+  }
+}
