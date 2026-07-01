@@ -2642,3 +2642,19 @@ main,
     padding-top: max(14px, env(safe-area-inset-top));
   }
 }
+/* Center contact QR on mobile */
+@media (max-width: 560px) {
+  .contact-actions {
+    justify-items: center;
+  }
+
+  .contact-actions .button {
+    justify-self: stretch;
+  }
+
+  .site-qr {
+    justify-self: center;
+    width: min(240px, 72vw);
+    margin-inline: auto;
+  }
+}
