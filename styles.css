@@ -2675,10 +2675,10 @@ main,
 
   .mobile-header-visible .site-header,
   .nav-open .site-header {
-    border-color: rgba(255,255,255,.7);
-    background: rgba(255,255,255,.72);
-    box-shadow: 0 12px 34px rgba(43,37,64,.12);
-    backdrop-filter: blur(18px) saturate(1.18);
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
   }
 
   .site-header::before {
