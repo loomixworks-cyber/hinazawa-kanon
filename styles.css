@@ -2728,3 +2728,16 @@ main,
     overflow-wrap: normal;
   }
 }
+
+/* Keep mobile hero title to three lines */
+@media (max-width: 560px) {
+  .pc-title-break {
+    display: initial;
+  }
+
+  #hero-title {
+    max-width: none;
+    word-break: keep-all;
+    overflow-wrap: normal;
+  }
+}
