@@ -2715,3 +2715,16 @@ main,
     top: 70px;
   }
 }
+
+/* Keep desktop hero title to three lines */
+@media (min-width: 1081px) {
+  .hero-copy {
+    max-width: 640px;
+  }
+
+  #hero-title {
+    max-width: 10.8em;
+    word-break: keep-all;
+    overflow-wrap: normal;
+  }
+}
