@@ -123,3 +123,44 @@ if (!reduceMotion.matches) {
     });
   });
 }
+
+const gameWarningLink = document.querySelector("[data-mobile-game-warning]");
+const gameWarningModal = document.querySelector(".game-warning-modal");
+const gameWarningStart = document.querySelector(".game-warning-start");
+const mobileGameWarningQuery = window.matchMedia("(max-width: 820px)");
+let gameWarningReturnTarget = null;
+
+const openGameWarning = (trigger) => {
+  if (!gameWarningModal) return;
+  gameWarningReturnTarget = trigger;
+  gameWarningModal.classList.add("is-open");
+  gameWarningModal.setAttribute("aria-hidden", "false");
+  body.classList.add("game-warning-open");
+  document.querySelector(".game-warning-close")?.focus();
+};
+
+const closeGameWarning = () => {
+  if (!gameWarningModal) return;
+  gameWarningModal.classList.remove("is-open");
+  gameWarningModal.setAttribute("aria-hidden", "true");
+  body.classList.remove("game-warning-open");
+  gameWarningReturnTarget?.focus();
+};
+
+gameWarningLink?.addEventListener("click", (event) => {
+  if (!mobileGameWarningQuery.matches) return;
+  event.preventDefault();
+  openGameWarning(event.currentTarget);
+});
+
+document.querySelectorAll("[data-game-warning-close]").forEach((control) => {
+  control.addEventListener("click", closeGameWarning);
+});
+
+gameWarningStart?.addEventListener("click", closeGameWarning);
+
+window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && gameWarningModal?.classList.contains("is-open")) {
+    closeGameWarning();
+  }
+});

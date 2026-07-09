@@ -69,7 +69,7 @@
             <div class="game-pickup-tags" aria-label="うさぎと電子少女 タグ">
               <span>新作ゲーム</span><span>ブラウザゲーム</span>
             </div>
-            <a class="button button-primary game-play-button" href="https://alicetel-u.github.io/AliceD/" target="_blank" rel="noreferrer"><span>GAME START</span><small>うさぎと電子少女を開く</small></a>
+            <a class="button button-primary game-play-button" href="https://alicetel-u.github.io/AliceD/" target="_blank" rel="noreferrer" data-mobile-game-warning><span>GAME START</span><small>うさぎと電子少女を開く</small></a>
             <p class="game-pickup-note">※ 現在はPCブラウザでの起動が推奨されます。</p>
           </article>
         </div>
@@ -215,6 +215,19 @@
     </main>
 
     <footer class="site-footer"><img src="assets/images/logo.png" alt="KANON"><small>&copy; 2026 KANON. All Rights Reserved.</small></footer>
+    <div class="game-warning-modal" role="dialog" aria-modal="true" aria-labelledby="gameWarningTitle" aria-hidden="true">
+      <div class="game-warning-backdrop" data-game-warning-close></div>
+      <section class="game-warning-panel" role="document">
+        <button class="game-warning-close" type="button" aria-label="閉じる" data-game-warning-close></button>
+        <span class="game-warning-kicker">Mobile Notice</span>
+        <h2 id="gameWarningTitle">スマホ版は開発中です</h2>
+        <p>起動は出来ますが、バグが発生する場合があります。DLの際に通信が発生しますので、Wi-Fi環境でご利用ください。</p>
+        <div class="game-warning-actions">
+          <button class="button button-soft game-warning-cancel" type="button" data-game-warning-close>戻る</button>
+          <a class="button button-primary game-warning-start" href="https://alicetel-u.github.io/AliceD/" target="_blank" rel="noreferrer">起動する</a>
+        </div>
+      </section>
+    </div>
     <script src="script.js"></script>
   </body>
 </html>
