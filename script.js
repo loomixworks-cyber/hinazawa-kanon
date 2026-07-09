@@ -164,3 +164,42 @@ window.addEventListener("keydown", (event) => {
     closeGameWarning();
   }
 });
+
+const gameSlideshow = document.querySelector("[data-game-slideshow]");
+const gameSlideshowFrame = gameSlideshow?.closest(".game-tv");
+
+const restartGameSlideshow = () => {
+  if (!gameSlideshowFrame) return;
+  gameSlideshowFrame.classList.remove("is-playing");
+  void gameSlideshowFrame.offsetWidth;
+  window.requestAnimationFrame(() => gameSlideshowFrame.classList.add("is-playing"));
+};
+
+const startGameSlideshow = () => {
+  const firstSlideImage = gameSlideshow?.querySelector(".game-slide:first-child img");
+  if (firstSlideImage && !firstSlideImage.complete) {
+    firstSlideImage.addEventListener("load", restartGameSlideshow, { once: true });
+    return;
+  }
+  restartGameSlideshow();
+};
+
+if (gameSlideshowFrame && !reduceMotion.matches) {
+  if ("IntersectionObserver" in window) {
+    const gameSlideshowObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            startGameSlideshow();
+          } else {
+            gameSlideshowFrame.classList.remove("is-playing");
+          }
+        });
+      },
+      { threshold: 0.36, rootMargin: "0px 0px -8% 0px" }
+    );
+    gameSlideshowObserver.observe(gameSlideshowFrame);
+  } else {
+    startGameSlideshow();
+  }
+}

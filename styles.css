@@ -3605,3 +3605,30 @@ body.game-warning-open {
     grid-template-columns: 1fr;
   }
 }
+
+/* Start game pickup slideshow only when it reaches the viewport */
+.game-tv:not(.is-playing) .game-slide,
+.game-tv:not(.is-playing) .game-slide img,
+.game-tv:not(.is-playing) .game-tv-screen::before,
+.game-tv:not(.is-playing) .game-tv-screen::after,
+.game-tv:not(.is-playing) .game-tv-dots i {
+  animation: none;
+}
+
+.game-tv:not(.is-playing) .game-slide {
+  opacity: 0;
+  transform: translate3d(0, 0, 0);
+}
+
+.game-tv:not(.is-playing) .game-slide:first-child {
+  opacity: 1;
+}
+
+.game-tv:not(.is-playing) .game-slide img {
+  transform: scale(1.06) translate3d(0, 0, 0);
+}
+
+.game-tv:not(.is-playing) .game-tv-dots i:first-child {
+  background: var(--pink-hot);
+  transform: scale(1.35);
+}
