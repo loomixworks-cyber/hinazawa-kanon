@@ -37,6 +37,12 @@ navLinks.forEach((link) => {
 window.addEventListener("pointermove", (event) => {
   cursorLight?.style.setProperty("transform", `translate3d(${event.clientX - 180}px, ${event.clientY - 180}px, 0)`);
 
+  const richHero = document.querySelector(".hero");
+  richHero?.style.setProperty("--rich-back-x", `${(event.clientX / window.innerWidth - .5) * -18}px`);
+  richHero?.style.setProperty("--rich-back-y", `${(event.clientY / window.innerHeight - .5) * -14}px`);
+  richHero?.style.setProperty("--rich-front-x", `${(event.clientX / window.innerWidth - .5) * 34}px`);
+  richHero?.style.setProperty("--rich-front-y", `${(event.clientY / window.innerHeight - .5) * 26}px`);
+
   if (!character || window.matchMedia("(max-width: 900px)").matches) return;
   const x = (event.clientX / window.innerWidth - 0.5) * 18;
   const y = (event.clientY / window.innerHeight - 0.5) * 14;
