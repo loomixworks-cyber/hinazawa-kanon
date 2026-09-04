@@ -4,8 +4,6 @@ const menuButton = document.querySelector(".menu-button");
 const navLinks = [...document.querySelectorAll(".site-nav a")];
 const cursorLight = document.querySelector(".cursor-light");
 const character = document.querySelector(".character");
-const stampsSection = document.querySelector("#stamps");
-const stampsMobileCta = document.querySelector(".stamps-mobile-cta");
 
 window.addEventListener("load", () => {
   body.classList.add("loaded");
@@ -64,14 +62,6 @@ const revealObserver = new IntersectionObserver(
 );
 
 document.querySelectorAll("[data-reveal]").forEach((element) => revealObserver.observe(element));
-
-if (stampsSection && stampsMobileCta && "IntersectionObserver" in window) {
-  const stampsCtaObserver = new IntersectionObserver(
-    ([entry]) => stampsMobileCta.classList.toggle("is-hidden", entry.isIntersecting),
-    { threshold: 0.18 }
-  );
-  stampsCtaObserver.observe(stampsSection);
-}
 
 document.querySelector("#voiceButton")?.addEventListener("click", (event) => {
   const button = event.currentTarget;
