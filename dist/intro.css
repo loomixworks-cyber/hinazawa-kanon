@@ -45,7 +45,7 @@
   transform: translateY(calc(var(--intro-mist, 0) * -3%));
 }
 .kanon-intro-mist::after { rotate: 160deg; opacity: .45; }
-.kanon-intro-hint {
+.kanon-intro-hint, .kanon-intro-loading {
   position: absolute;
   bottom: max(32px, calc(env(safe-area-inset-bottom) + 20px));
   left: 50%;
@@ -65,6 +65,17 @@
   opacity: var(--intro-hint, 1);
   pointer-events: none;
 }
+.kanon-intro-loading { gap: 14px; padding-block: 32px; opacity: 1; }
+.kanon-intro-loading[hidden] { display: none; }
+.kanon-intro-loading p { margin: 0; font-size: 13px; line-height: 1.8; letter-spacing: .06em; }
+.kanon-intro-loading-track { width: 160px; height: 2px; margin-top: 4px; overflow: hidden; border-radius: 2px; background: #ffffff40; }
+.kanon-intro-loading-track > span { display: block; width: 45%; height: 100%; background: linear-gradient(90deg, transparent, #ffe1ef, white); animation: intro-loading 1.8s ease-in-out infinite; }
+@keyframes intro-loading { from { transform: translateX(-110%); } to { transform: translateX(325%); } }
+.kanon-intro-hint { transition: opacity .5s ease; }
+.intro-pending .kanon-intro-hint, .is-loading .kanon-intro-hint { opacity: 0; }
+.intro-pending .kanon-intro-arrow svg, .is-loading .kanon-intro-arrow svg { animation-play-state: paused; }
+.has-video-error .kanon-intro-loading-track { display: none; }
+.intro-enabled:not(.intro-active) .kanon-intro-loading-track > span { animation-play-state: paused; }
 .kanon-intro-eyebrow { font-size: 10px; letter-spacing: .28em; color: #ffe1ef; }
 .kanon-intro-hint p { margin: 0; font-size: clamp(13px, 3.5vw, 16px); letter-spacing: .1em; }
 .kanon-intro-instruction { font-size: 10px; letter-spacing: .04em; }

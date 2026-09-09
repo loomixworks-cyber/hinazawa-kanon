@@ -31,6 +31,28 @@
   let videoUnavailable = false;
   let disposed = false;
   let active = null;
+  const loading = overlay.querySelector('.kanon-intro-loading');
+  const loadingLabel = overlay.querySelector('.kanon-intro-loading-label');
+  const hint = overlay.querySelector('.kanon-intro-hint');
+  let loadingState = null;
+  function setLoadingState(state) {
+    if (loadingState === state) return;
+    loadingState = state;
+    const ready = state === 'ready';
+    overlay.classList.toggle('is-loading', !ready);
+    overlay.classList.toggle('has-video-error', state === 'error');
+    loading.hidden = ready;
+    hint.setAttribute('aria-hidden', String(!ready));
+    loadingLabel.textContent = state === 'error'
+      ? '映像を読み込めませんでした。スクロールで先へ進めます'
+      : state === 'slow' ? '読み込みに時間がかかっています。スクロールでも先へ進めます'
+      : '映像を準備しています';
+  }
+  function showVideo() {
+    overlay.classList.add('is-ready');
+    clearTimeout(loadingTimer);
+    setLoadingState('ready');
+  }
 
   function releaseVideo() {
     clearTimeout(loadingTimer);
@@ -78,7 +100,7 @@
     const target = Math.round(clamp(progress / .82) * lastFrame) / fps;
     if (v.seeking) return; // Coalesce input; seeked renders only the latest target.
     if (Math.abs(v.currentTime - target) < 1 / 48) {
-      if (v.readyState >= 2) overlay.classList.add('is-ready');
+      if (v.readyState >= 2) showVideo();
       return;
     }
     try {
@@ -91,9 +113,11 @@
     // A failed download must never advance the page without a scroll gesture.
     videoUnavailable = true;
     releaseVideo();
+    setLoadingState('error');
   }
   function loadVideo() {
     if (video || disposed || videoUnavailable) return;
+    setLoadingState('loading');
     const v = document.createElement('video');
     video = v;
     v.className = 'kanon-intro-video';
@@ -110,18 +134,20 @@
     for (const event of ['loadedmetadata', 'loadeddata', 'canplay', 'progress', 'seeked']) {
       v.addEventListener(event, () => {
         if (video !== v) return;
-        if (event === 'loadedmetadata') clearTimeout(loadingTimer);
         if (event === 'seeked') clearTimeout(seekTimer);
         // Show each decoded frame even while the latest scroll target is ahead.
         if (v.readyState >= 2 && (event === 'loadeddata' || event === 'canplay' || event === 'seeked')) {
-          overlay.classList.add('is-ready');
+          showVideo();
         }
         requestFrame();
       });
     }
     overlay.prepend(v);
     // Slow downloads keep their video element so later data can recover.
-    loadingTimer = setTimeout(requestFrame, 12000);
+    loadingTimer = setTimeout(() => {
+      if (video === v && !overlay.classList.contains('is-ready')) setLoadingState('slow');
+      requestFrame();
+    }, 12000);
     v.src = videoSource;
     v.load(); // Decode while paused; currentTime is driven exclusively by scroll.
   }
