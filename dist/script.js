@@ -2,22 +2,15 @@
 const header = document.querySelector(".site-header");
 const menuButton = document.querySelector(".menu-button");
 const navLinks = [...document.querySelectorAll(".site-nav a")];
-const cursorLight = document.querySelector(".cursor-light");
 const character = document.querySelector(".character");
 const richHero = document.querySelector(".hero");
 const scheduler = window.kanonMotion;
 const compactMotion = matchMedia("(max-width: 900px)");
 const desktopPointerEffects = matchMedia("(min-width: 901px) and (hover: hover) and (pointer: fine)");
-const desktopTiltEffects = false;
 let lastPageScroll = -1;
 let latestPointer = null;
 const contentScrollY = () => Math.max(0, window.scrollY - (window.kanonIntroDistance || 0));
 
-window.addEventListener("load", () => {
-  body.classList.add("loaded");
-});
-
-window.setTimeout(() => body.classList.add("loaded"), 1200);
 const updateHeaderState = () => {
   const isScrolled = contentScrollY() > 24;
   header?.classList.toggle("is-scrolled", isScrolled);
@@ -74,19 +67,6 @@ const revealObserver = new IntersectionObserver(
 
 document.querySelectorAll("[data-reveal]").forEach((element) => revealObserver.observe(element));
 
-document.querySelector("#voiceButton")?.addEventListener("click", (event) => {
-  const button = event.currentTarget;
-  button.textContent = "Short MV!";
-  button.animate([{ transform: "scale(1)" }, { transform: "scale(1.08)" }, { transform: "scale(1)" }], {
-    duration: 420,
-    easing: "ease-out"
-  });
-
-  window.setTimeout(() => {
-    button.textContent = "Kanon!";
-  }, 1200);
-});
-
 const sections = [...document.querySelectorAll("main section[id]")];
 const navObserver = new IntersectionObserver(
   (entries) => {
@@ -105,7 +85,6 @@ sections.forEach((section) => navObserver.observe(section));
 const progressBar = document.querySelector(".scroll-progress span");
 const heroCopy = document.querySelector(".hero-copy");
 const heroStage = document.querySelector(".hero-stage");
-const motionCards = [...document.querySelectorAll(".short-card, .long-video-card, .goods-card, .news-list a, .site-qr")];
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 // Visibility gates CSS animations, including pseudo-elements, without layout polling.
@@ -151,24 +130,6 @@ scheduler.add(() => {
   updatePointerMotion();
 });
 scheduler.request();
-
-if (!reduceMotion.matches && desktopTiltEffects) {
-  motionCards.forEach((card) => {
-    card.addEventListener("pointermove", (event) => {
-      if (window.matchMedia("(max-width: 900px)").matches) return;
-      const rect = card.getBoundingClientRect();
-      const x = (event.clientX - rect.left) / rect.width - 0.5;
-      const y = (event.clientY - rect.top) / rect.height - 0.5;
-      card.style.setProperty("--tilt-x", `${x * 5}deg`);
-      card.style.setProperty("--tilt-y", `${y * -5}deg`);
-    });
-
-    card.addEventListener("pointerleave", () => {
-      card.style.setProperty("--tilt-x", "0deg");
-      card.style.setProperty("--tilt-y", "0deg");
-    });
-  });
-}
 
 const gameWarningLink = document.querySelector("[data-mobile-game-warning]");
 const gameWarningModal = document.querySelector(".game-warning-modal");
