@@ -110,6 +110,7 @@ function element() {
 
   // A fast upward wheel gesture must stop at the homepage before reverse playback.
   ctx.scrollY = 4000;
+  prevented = 0;
   windowListeners.wheel({ deltaY: -1000, deltaMode: 0, ctrlKey: false, preventDefault() { prevented++; } });
   assert.equal(prevented, 1, 'Crossing gesture must be absorbed at the homepage top');
   assert.equal(ctx.scrollY, 3200, 'Crossing gesture must snap to the intro boundary');
