@@ -8,6 +8,10 @@ const scheduler = window.kanonMotion;
 const compactMotion = matchMedia("(max-width: 900px)");
 const desktopPointerEffects = matchMedia("(min-width: 901px) and (hover: hover) and (pointer: fine)");
 const desktopHeaderVisibility = matchMedia("(min-width: 821px)");
+const pointerGlow = document.createElement("div");
+pointerGlow.className = "pointer-glow";
+pointerGlow.setAttribute("aria-hidden", "true");
+body.append(pointerGlow);
 let lastPageScroll = -1;
 let latestPointer = null;
 const contentScrollY = () => Math.max(0, window.scrollY - (window.kanonIntroDistance || 0));
@@ -38,7 +42,6 @@ navLinks.forEach((link) => {
 
 window.addEventListener("pointermove", (event) => {
   if (!desktopPointerEffects.matches || document.documentElement.classList.contains("intro-active") || reduceMotion.matches || compactMotion.matches) return;
-  if (richHero?.classList.contains("motion-offscreen")) return;
   latestPointer = { clientX: event.clientX, clientY: event.clientY };
   scheduler.request();
 }, { passive: true });
@@ -46,11 +49,14 @@ window.addEventListener("pointermove", (event) => {
 function updatePointerMotion() {
   const event = latestPointer;
   latestPointer = null;
-  if (!event || !character || document.documentElement.classList.contains("intro-active")) return;
-  if (richHero?.classList.contains("motion-offscreen")) return;
+  if (!event || document.documentElement.classList.contains("intro-active")) return;
 
-  // Lightweight desktop parallax: one composited element, no layout reads,
-  // filters, blur, blend modes, or background movement.
+  // One lightweight composited gradient follows the pointer across desktop.
+  // No blur/filter, layout reads, blend mode, or second animation loop.
+  pointerGlow.style.translate = `${(event.clientX - 210).toFixed(1)}px ${(event.clientY - 210).toFixed(1)}px`;
+  pointerGlow.classList.add("is-visible");
+
+  if (!character || richHero?.classList.contains("motion-offscreen")) return;
   const x = (event.clientX / window.innerWidth - 0.5) * 12;
   const y = (event.clientY / window.innerHeight - 0.5) * 8;
   character.style.translate = `${x.toFixed(2)}px ${y.toFixed(2)}px`;
@@ -123,6 +129,7 @@ scheduler.add(() => {
   if (document.documentElement.classList.contains('intro-active')) {
     lastPageScroll = -1;
     latestPointer = null;
+    pointerGlow.classList.remove("is-visible");
     return;
   }
   if (lastPageScroll !== scrollY) {
