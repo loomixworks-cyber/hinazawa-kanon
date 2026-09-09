@@ -5,6 +5,8 @@ const css = fs.readFileSync('styles.css', 'utf8');
 const distCss = fs.readFileSync('dist/styles.css', 'utf8');
 const script = fs.readFileSync('script.js', 'utf8');
 const distScript = fs.readFileSync('dist/script.js', 'utf8');
+const html = fs.readFileSync('index.html', 'utf8');
+const distHtml = fs.readFileSync('dist/index.html', 'utf8');
 
 assert.equal(css, distCss, 'root and dist styles must match');
 assert.equal(script, distScript, 'root and dist scripts must match');
@@ -16,7 +18,6 @@ const start = css.indexOf(marker);
 assert(start >= 0);
 const perf = css.slice(start);
 assert(perf.includes('@media (min-width: 821px) {'), 'desktop performance rules must be desktop-only');
-assert(perf.includes('.ambient-stage,\n  .cursor-light {\n    display: none !important;'));
 assert(perf.includes('content-visibility: auto;'));
 assert(perf.includes('contain-intrinsic-size: auto 900px;'));
 assert(perf.includes('backdrop-filter: none !important;'));
@@ -24,9 +25,22 @@ assert(perf.includes('animation: none !important;'));
 assert(perf.includes('will-change: auto !important;'));
 
 assert(script.includes('const desktopPointerEffects = matchMedia("(min-width: 901px) and (hover: hover) and (pointer: fine)");'));
-assert(script.includes('const desktopTiltEffects = false;'));
 assert(script.includes('if (!desktopPointerEffects.matches ||'));
-assert(script.includes('if (!reduceMotion.matches && desktopTiltEffects)'));
+assert(script.includes('const x = (event.clientX / window.innerWidth - 0.5) * 12;'));
+assert(script.includes('const y = (event.clientY / window.innerHeight - 0.5) * 8;'));
+assert(script.includes('character.style.translate = "0 0";'));
+assert(css.includes('.character {\n    transition: translate .11s ease-out;\n  }'));
+
+assert(!script.includes('desktopTiltEffects'), 'disabled card tilt code should be removed, not merely gated');
+assert(!script.includes('getBoundingClientRect();'), 'dead card tilt layout reads must stay removed');
+assert(!script.includes('cursorLight'), 'removed cursor-light element must not have JS references');
+assert(!script.includes('#voiceButton'), 'listener for missing voice button must stay removed');
+assert(!css.includes('.cursor-light'), 'hidden cursor light CSS must stay removed');
+assert(!css.includes('.ambient-stage'), 'hidden ambient stage CSS must stay removed');
+assert(!css.includes('@keyframes ambientFloat'), 'unused ambient animation must stay removed');
+assert(!css.includes('.loader'), 'legacy loader CSS must stay removed');
+assert(!html.includes('class="cursor-light"') && !distHtml.includes('class="cursor-light"'));
+assert(!html.includes('class="ambient-stage"') && !distHtml.includes('class="ambient-stage"'));
 
 for (const mobileMarker of [
   'Mobile key visual composition',
@@ -39,24 +53,14 @@ for (const mobileMarker of [
   assert(css.includes(`/* ${mobileMarker} */`), `mobile guard missing: ${mobileMarker}`);
 }
 
-assert(script.includes('const x = (event.clientX / window.innerWidth - 0.5) * 12;'));
-assert(script.includes('const y = (event.clientY / window.innerHeight - 0.5) * 8;'));
-assert(script.includes('character.style.translate = "0 0";'));
-assert(!script.includes('cursorLight?.style.setProperty("transform"'), 'heavy cursor light tracking must stay disabled');
-assert(!script.includes('richHero?.style.setProperty("--rich-back-x"'), 'rich background pointer parallax must stay disabled');
-assert(!script.includes('getBoundingClientRect();') || script.includes('desktopTiltEffects = false'), 'card tilt must stay disabled');
-assert(css.includes('.character {\n    transition: translate .11s ease-out;\n  }'));
-
-console.log('PASS: lightweight character parallax enabled; heavy desktop effects remain disabled');
-
-
 {
   const marker = '/* Mobile performance pass: keep the design, stop decorative infinite work */';
   const start = css.indexOf(marker);
   assert(start >= 0, 'mobile performance block missing');
   const mobilePerf = css.slice(start);
   assert(mobilePerf.includes('@media (max-width: 820px) {'));
-  assert(mobilePerf.includes('.ambient-stage {\n    display: none !important;\n  }'));
   assert(mobilePerf.includes('.hero::before,\n  .orbital i {\n    animation: none !important;\n  }'));
   assert(!mobilePerf.includes('.character {'), 'character float must remain enabled on mobile');
 }
+
+console.log('PASS: lightweight character parallax retained; proven dead runtime and decorative code removed');
