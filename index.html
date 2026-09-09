@@ -6,15 +6,36 @@
     <title>KANON Official Site</title>
     <meta name="description" content="陽菜沢かのん公式サイト。YouTube Shorts、MV、プロフィール、ニュース、グッズ情報をまとめています。">
     <meta name="theme-color" content="#ff7ac8">
+    <script>
+      // Runs before first paint; a separate watchdog also handles a missing intro.js.
+      (() => {
+        const root = document.documentElement;
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduced || (location.hash && new URLSearchParams(location.search).get('intro') !== '1')) return;
+        root.classList.add('intro-pending');
+        window.kanonIntroWatchdog = setTimeout(() => {
+          if (window.kanonIntroFinish) window.kanonIntroFinish(true);
+          else {
+            root.classList.remove('intro-pending');
+            document.querySelector('.kanon-intro')?.remove();
+          }
+        }, 16000);
+      })();
+    </script>
     <link rel="icon" type="image/png" href="assets/images/favicon.png">
     <link rel="apple-touch-icon" href="assets/images/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="intro.css">
   </head>
   <body>
-    <div class="loader" aria-hidden="true"><img src="assets/images/logo.png" alt=""><span>Loading</span></div>
+    <div class="kanon-intro" role="region" aria-label="カノンのイントロ">
+      <video class="kanon-intro-video" poster="assets/video/kanon-intro-poster.jpg" muted autoplay playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
+      <div class="kanon-intro-mist" aria-hidden="true"></div>
+      <button class="kanon-intro-skip" type="button">イントロをスキップ <span aria-hidden="true">↗</span></button>
+    </div>
     <div class="cursor-light" aria-hidden="true"></div>
     <div class="scroll-progress" aria-hidden="true"><span></span></div>
     <div class="ambient-stage" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -276,6 +297,7 @@
         </div>
       </section>
     </div>
+    <script src="intro.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
