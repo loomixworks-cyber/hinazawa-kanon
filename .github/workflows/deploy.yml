@@ -36,6 +36,9 @@ jobs:
       - name: Validate hero CSS cleanup
         run: node tests/hero-css-cleanup.cjs
 
+      - name: Validate desktop performance pass
+        run: node tests/desktop-performance.cjs
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 

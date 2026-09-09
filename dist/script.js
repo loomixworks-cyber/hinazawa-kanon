@@ -7,6 +7,8 @@ const character = document.querySelector(".character");
 const richHero = document.querySelector(".hero");
 const scheduler = window.kanonMotion;
 const compactMotion = matchMedia("(max-width: 900px)");
+const desktopPointerEffects = false;
+const desktopTiltEffects = false;
 let lastPageScroll = -1;
 let latestPointer = null;
 const contentScrollY = () => Math.max(0, window.scrollY - (window.kanonIntroDistance || 0));
@@ -39,7 +41,7 @@ navLinks.forEach((link) => {
 });
 
 window.addEventListener("pointermove", (event) => {
-  if (document.documentElement.classList.contains("intro-active") || reduceMotion.matches || compactMotion.matches) return;
+  if (!desktopPointerEffects || document.documentElement.classList.contains("intro-active") || reduceMotion.matches || compactMotion.matches) return;
   latestPointer = { clientX: event.clientX, clientY: event.clientY };
   scheduler.request();
 }, { passive: true });
@@ -149,7 +151,7 @@ scheduler.add(() => {
 });
 scheduler.request();
 
-if (!reduceMotion.matches) {
+if (!reduceMotion.matches && desktopTiltEffects) {
   motionCards.forEach((card) => {
     card.addEventListener("pointermove", (event) => {
       if (window.matchMedia("(max-width: 900px)").matches) return;

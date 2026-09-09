@@ -3984,3 +3984,65 @@ body.game-warning-open {
   .stamps-copy>p:not(.stamps-note){font-size:14px;line-height:1.85}
   .stamps-button{width:100%;min-width:0}
 }
+
+
+/* Desktop performance pass: preserve mobile, stop continuous GPU churn */
+@media (min-width: 821px) {
+  .ambient-stage,
+  .cursor-light {
+    display: none !important;
+  }
+
+  .hero::before,
+  .orbital i,
+  .character,
+  .hero-badge,
+  .hero-rich-layer > span,
+  .rich-halo::before {
+    animation: none !important;
+  }
+
+  .hero-rich-type,
+  .hero-rich-back,
+  .hero-rich-front,
+  .hero-rich-layer > span {
+    transition: none !important;
+  }
+
+  .hero-rich-layer > span,
+  .character,
+  .button,
+  .hero-video-nav a,
+  .site-nav a {
+    will-change: auto !important;
+  }
+
+  .site-header,
+  .hero-copy,
+  .hero-badge,
+  .panel,
+  .long-video-card,
+  .site-qr,
+  .game-slide span,
+  .thumb-art.has-image b,
+  .long-thumb.has-image b {
+    backdrop-filter: none !important;
+  }
+
+  .site-header {
+    background:
+      linear-gradient(135deg, rgba(255,255,255,.96), rgba(255,255,255,.86)),
+      linear-gradient(90deg, rgba(255,119,200,.10), rgba(37,199,255,.10));
+  }
+
+  .site-header.is-scrolled {
+    background:
+      linear-gradient(135deg, rgba(255,255,255,.98), rgba(255,255,255,.92)),
+      linear-gradient(90deg, rgba(255,119,200,.10), rgba(37,199,255,.10));
+  }
+
+  main > section:not(.hero) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 900px;
+  }
+}
