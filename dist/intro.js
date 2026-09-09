@@ -70,20 +70,21 @@
   }
   function seek() {
     const v = video;
-    if (!v || v.readyState < 2 || !Number.isFinite(v.duration)) return;
+    // Metadata is enough to request a frame. Waiting for decoded data can
+    // deadlock paused videos on browsers that decode only after the first seek.
+    if (!v || v.readyState < 1 || !Number.isFinite(v.duration)) return;
     // Seek once per encoded frame, coalescing rapid scroll input while decoding.
     const lastFrame = Math.max(0, Math.round(v.duration * fps) - 1);
     const target = Math.round(clamp(progress / .82) * lastFrame) / fps;
     if (v.seeking) return; // Coalesce input; seeked renders only the latest target.
     if (Math.abs(v.currentTime - target) < 1 / 48) {
-      overlay.classList.add('is-ready');
-      clearTimeout(loadingTimer);
+      if (v.readyState >= 2) overlay.classList.add('is-ready');
       return;
     }
     try {
       v.currentTime = target;
       clearTimeout(seekTimer);
-      seekTimer = setTimeout(usePoster, 8000);
+      seekTimer = setTimeout(requestFrame, 8000);
     } catch { /* Data events retry; the loading timeout remains armed. */ }
   }
   function usePoster() {
@@ -106,15 +107,21 @@
     v.preload = 'auto';
     v.addEventListener('error', () => { if (video === v) usePoster(); }, { once: true });
     v.addEventListener('play', () => v.pause());
-    for (const event of ['loadeddata', 'canplay', 'seeked']) {
+    for (const event of ['loadedmetadata', 'loadeddata', 'canplay', 'progress', 'seeked']) {
       v.addEventListener(event, () => {
         if (video !== v) return;
+        if (event === 'loadedmetadata') clearTimeout(loadingTimer);
         if (event === 'seeked') clearTimeout(seekTimer);
+        // Show each decoded frame even while the latest scroll target is ahead.
+        if (v.readyState >= 2 && (event === 'loadeddata' || event === 'canplay' || event === 'seeked')) {
+          overlay.classList.add('is-ready');
+        }
         requestFrame();
       });
     }
     overlay.prepend(v);
-    loadingTimer = setTimeout(usePoster, 12000);
+    // Slow downloads keep their video element so later data can recover.
+    loadingTimer = setTimeout(requestFrame, 12000);
     v.src = videoSource;
     v.load(); // Decode while paused; currentTime is driven exclusively by scroll.
   }
