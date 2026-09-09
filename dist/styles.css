@@ -4041,6 +4041,10 @@ body.game-warning-open {
       linear-gradient(90deg, rgba(255,119,200,.10), rgba(37,199,255,.10));
   }
 
+  .character {
+    transition: translate .11s ease-out;
+  }
+
   main > section:not(.hero) {
     content-visibility: auto;
     contain-intrinsic-size: auto 900px;

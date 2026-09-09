@@ -7,7 +7,7 @@ const character = document.querySelector(".character");
 const richHero = document.querySelector(".hero");
 const scheduler = window.kanonMotion;
 const compactMotion = matchMedia("(max-width: 900px)");
-const desktopPointerEffects = false;
+const desktopPointerEffects = matchMedia("(min-width: 901px) and (hover: hover) and (pointer: fine)");
 const desktopTiltEffects = false;
 let lastPageScroll = -1;
 let latestPointer = null;
@@ -41,7 +41,8 @@ navLinks.forEach((link) => {
 });
 
 window.addEventListener("pointermove", (event) => {
-  if (!desktopPointerEffects || document.documentElement.classList.contains("intro-active") || reduceMotion.matches || compactMotion.matches) return;
+  if (!desktopPointerEffects.matches || document.documentElement.classList.contains("intro-active") || reduceMotion.matches || compactMotion.matches) return;
+  if (richHero?.classList.contains("motion-offscreen")) return;
   latestPointer = { clientX: event.clientX, clientY: event.clientY };
   scheduler.request();
 }, { passive: true });
@@ -49,19 +50,14 @@ window.addEventListener("pointermove", (event) => {
 function updatePointerMotion() {
   const event = latestPointer;
   latestPointer = null;
-  if (!event || document.documentElement.classList.contains("intro-active")) return;
-  cursorLight?.style.setProperty("transform", `translate3d(${event.clientX - 180}px, ${event.clientY - 180}px, 0)`);
-
+  if (!event || !character || document.documentElement.classList.contains("intro-active")) return;
   if (richHero?.classList.contains("motion-offscreen")) return;
-  richHero?.style.setProperty("--rich-back-x", `${(event.clientX / window.innerWidth - .5) * -18}px`);
-  richHero?.style.setProperty("--rich-back-y", `${(event.clientY / window.innerHeight - .5) * -14}px`);
-  richHero?.style.setProperty("--rich-front-x", `${(event.clientX / window.innerWidth - .5) * 34}px`);
-  richHero?.style.setProperty("--rich-front-y", `${(event.clientY / window.innerHeight - .5) * 26}px`);
 
-  if (!character || window.matchMedia("(max-width: 900px)").matches) return;
-  const x = (event.clientX / window.innerWidth - 0.5) * 18;
-  const y = (event.clientY / window.innerHeight - 0.5) * 14;
-  character.style.translate = `${x}px ${y}px`;
+  // Lightweight desktop parallax: one composited element, no layout reads,
+  // filters, blur, blend modes, or background movement.
+  const x = (event.clientX / window.innerWidth - 0.5) * 12;
+  const y = (event.clientY / window.innerHeight - 0.5) * 8;
+  character.style.translate = `${x.toFixed(2)}px ${y.toFixed(2)}px`;
 }
 
 const revealObserver = new IntersectionObserver(
@@ -120,6 +116,11 @@ document.querySelectorAll('main > section, .hero, .site-footer').forEach(element
   element.classList.add('motion-offscreen');
   animationObserver.observe(element);
 });
+
+richHero?.addEventListener("pointerleave", () => {
+  latestPointer = null;
+  if (character) character.style.translate = "0 0";
+}, { passive: true });
 
 const updateScrollMotion = () => {
   const scrollMax = document.documentElement.scrollHeight - window.innerHeight;

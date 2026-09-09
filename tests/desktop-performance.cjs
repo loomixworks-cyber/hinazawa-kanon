@@ -23,9 +23,9 @@ assert(perf.includes('backdrop-filter: none !important;'));
 assert(perf.includes('animation: none !important;'));
 assert(perf.includes('will-change: auto !important;'));
 
-assert(script.includes('const desktopPointerEffects = false;'));
+assert(script.includes('const desktopPointerEffects = matchMedia("(min-width: 901px) and (hover: hover) and (pointer: fine)");'));
 assert(script.includes('const desktopTiltEffects = false;'));
-assert(script.includes('if (!desktopPointerEffects ||'));
+assert(script.includes('if (!desktopPointerEffects.matches ||'));
 assert(script.includes('if (!reduceMotion.matches && desktopTiltEffects)'));
 
 for (const mobileMarker of [
@@ -39,4 +39,12 @@ for (const mobileMarker of [
   assert(css.includes(`/* ${mobileMarker} */`), `mobile guard missing: ${mobileMarker}`);
 }
 
-console.log('PASS: desktop-only GPU reduction enabled; mobile layout guards retained');
+assert(script.includes('const x = (event.clientX / window.innerWidth - 0.5) * 12;'));
+assert(script.includes('const y = (event.clientY / window.innerHeight - 0.5) * 8;'));
+assert(script.includes('character.style.translate = "0 0";'));
+assert(!script.includes('cursorLight?.style.setProperty("transform"'), 'heavy cursor light tracking must stay disabled');
+assert(!script.includes('richHero?.style.setProperty("--rich-back-x"'), 'rich background pointer parallax must stay disabled');
+assert(!script.includes('getBoundingClientRect();') || script.includes('desktopTiltEffects = false'), 'card tilt must stay disabled');
+assert(css.includes('.character {\n    transition: translate .11s ease-out;\n  }'));
+
+console.log('PASS: lightweight character parallax enabled; heavy desktop effects remain disabled');
