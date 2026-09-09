@@ -4050,3 +4050,16 @@ body.game-warning-open {
     contain-intrinsic-size: auto 900px;
   }
 }
+
+
+/* Mobile performance pass: keep the design, stop decorative infinite work */
+@media (max-width: 820px) {
+  .ambient-stage {
+    display: none !important;
+  }
+
+  .hero::before,
+  .orbital i {
+    animation: none !important;
+  }
+}

@@ -48,3 +48,15 @@ assert(!script.includes('getBoundingClientRect();') || script.includes('desktopT
 assert(css.includes('.character {\n    transition: translate .11s ease-out;\n  }'));
 
 console.log('PASS: lightweight character parallax enabled; heavy desktop effects remain disabled');
+
+
+{
+  const marker = '/* Mobile performance pass: keep the design, stop decorative infinite work */';
+  const start = css.indexOf(marker);
+  assert(start >= 0, 'mobile performance block missing');
+  const mobilePerf = css.slice(start);
+  assert(mobilePerf.includes('@media (max-width: 820px) {'));
+  assert(mobilePerf.includes('.ambient-stage {\n    display: none !important;\n  }'));
+  assert(mobilePerf.includes('.hero::before,\n  .orbital i {\n    animation: none !important;\n  }'));
+  assert(!mobilePerf.includes('.character {'), 'character float must remain enabled on mobile');
+}
