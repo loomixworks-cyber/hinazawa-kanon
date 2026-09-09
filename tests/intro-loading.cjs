@@ -17,7 +17,8 @@ function element() {
 }
 
 (async () => {
-  const frames = [], listeners = {}, timers = [];
+  const frames = [], listeners = {}, windowListeners = {}, timers = [];
+  let scrollCalls = 0;
   const root = element(), overlay = element(), hero = element();
   const loading = element(), label = element(), hint = element();
   root.classList.add('intro-pending');
@@ -29,8 +30,8 @@ function element() {
     setTimeout: f => (timers.push(f), timers.length), clearTimeout() {},
     requestAnimationFrame: f => (frames.push(f), frames.length), cancelAnimationFrame() {},
     ResizeObserver: class { observe() {} disconnect() {} }, Event: class {},
-    scrollTo() { throw new Error('Unexpected automatic scroll'); },
-    addEventListener() {}, dispatchEvent() {},
+    scrollTo({ top }) { scrollCalls++; ctx.scrollY = top; },
+    addEventListener(name, handler) { windowListeners[name] = handler; }, dispatchEvent() {},
     URL: { createObjectURL: () => 'blob:complete-video', revokeObjectURL() { revoked = true; } },
     fetch: async () => (fetchCount++, { ok: true, headers: { get: () => '8' }, body: { getReader() {
       let step = 0;
@@ -62,6 +63,7 @@ function element() {
   vm.runInNewContext(fs.readFileSync('motion.js', 'utf8'), ctx);
   vm.runInNewContext(fs.readFileSync('intro.js', 'utf8'), ctx);
   flush();
+  assert.equal(scrollCalls, 0, 'Initialization must not scroll automatically');
   await new Promise(setImmediate);
   assert(root.classList.contains('intro-loading'));
   assert.equal(video.src, undefined, 'Partial response must never reach video');
@@ -93,6 +95,19 @@ function element() {
   assert.equal(fetchCount, 1, 'Leaving the intro must not trigger another download');
   assert.equal(videoCount, 1, 'Leaving the intro must keep the same video element');
 
+  // A fast upward wheel gesture must stop at the homepage before reverse playback.
+  ctx.scrollY = 4000;
+  let prevented = 0;
+  windowListeners.wheel({ deltaY: -1000, deltaMode: 0, ctrlKey: false, preventDefault() { prevented++; } });
+  assert.equal(prevented, 1, 'Crossing gesture must be absorbed at the homepage top');
+  assert.equal(ctx.scrollY, 3200, 'Crossing gesture must snap to the intro boundary');
+  windowListeners.wheel({ deltaY: -900, deltaMode: 0, ctrlKey: false, preventDefault() { prevented++; } });
+  assert.equal(ctx.scrollY, 3200, 'Momentum from the same gesture must stay on the homepage');
+  timers[timers.length - 1]();
+  windowListeners.wheel({ deltaY: -900, deltaMode: 0, ctrlKey: false, preventDefault() { prevented++; } });
+  assert.equal(ctx.scrollY, 3060, 'Next distinct upward gesture should enter reverse intro gently');
+  flush();
+
   // Returning upward should reuse the same video immediately.
   ctx.scrollY = 300; listeners.seeked(); flush();
   assert.equal(fetchCount, 1, 'Returning to intro must reuse the existing download');
@@ -112,5 +127,5 @@ function element() {
   listeners.error();
   assert(revoked, 'Release blob memory on failure');
   assert(!root.classList.contains('intro-loading'), 'Failure must unlock scrolling');
-  console.log('PASS: complete-download gate, decoded-frame gate, retained reverse scroll, cleanup, no autoplay');
+  console.log('PASS: complete-download gate, decoded-frame gate, reverse intro wheel gate, retained reverse scroll, cleanup, no autoplay');
 })().catch(error => { console.error(error); process.exitCode = 1; });
