@@ -36,5 +36,5 @@ jobs:
             echo "No optimization changes to commit."
             exit 0
           fi
-          git commit -m "Optimize site images for mobile bandwidth [skip ci]"
+          git commit -m "Optimize site images for mobile bandwidth"
           git push
