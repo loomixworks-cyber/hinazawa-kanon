@@ -26,7 +26,7 @@ function element() {
   let video, finishDownload, revoked = false, fetchCount = 0, videoCount = 0;
   const ctx = {
     AbortController, Blob, navigator: {}, innerHeight: 800, innerWidth: 1200, scrollY: 0,
-    matchMedia: () => ({ matches: false, addEventListener() {} }),
+    matchMedia: query => ({ matches: query.includes('min-width: 821px'), addEventListener() {} }),
     setTimeout: f => (timers.push(f), timers.length), clearTimeout() {},
     requestAnimationFrame: f => (frames.push(f), frames.length), cancelAnimationFrame() {},
     ResizeObserver: class { observe() {} disconnect() {} }, Event: class {},
@@ -85,6 +85,19 @@ function element() {
   ctx.scrollY = 500; listeners.seeked(); flush();
   assert(video.currentTime < forward);
 
+  // Crossing from the intro into the homepage should pause on the completed hero.
+  ctx.scrollY = 3000;
+  let prevented = 0;
+  windowListeners.wheel({ deltaY: 1000, deltaMode: 0, ctrlKey: false, preventDefault() { prevented++; } });
+  assert.equal(prevented, 1, 'Forward crossing gesture must pause at the homepage top');
+  assert.equal(ctx.scrollY, 3200, 'Forward crossing must land on the intro boundary');
+  windowListeners.wheel({ deltaY: 900, deltaMode: 0, ctrlKey: false, preventDefault() { prevented++; } });
+  assert.equal(ctx.scrollY, 3200, 'Forward momentum from the same gesture must be absorbed');
+  timers[timers.length - 1]();
+  windowListeners.wheel({ deltaY: 900, deltaMode: 0, ctrlKey: false, preventDefault() { prevented++; } });
+  assert.equal(ctx.scrollY, 3340, 'Next distinct downward gesture should enter the homepage gently');
+  flush();
+
   // Crossing into the homepage must keep the completed Blob/video alive.
   const lastVisibleTime = video.currentTime;
   ctx.scrollY = 4000; listeners.seeked(); flush();
@@ -97,7 +110,6 @@ function element() {
 
   // A fast upward wheel gesture must stop at the homepage before reverse playback.
   ctx.scrollY = 4000;
-  let prevented = 0;
   windowListeners.wheel({ deltaY: -1000, deltaMode: 0, ctrlKey: false, preventDefault() { prevented++; } });
   assert.equal(prevented, 1, 'Crossing gesture must be absorbed at the homepage top');
   assert.equal(ctx.scrollY, 3200, 'Crossing gesture must snap to the intro boundary');
@@ -127,5 +139,5 @@ function element() {
   listeners.error();
   assert(revoked, 'Release blob memory on failure');
   assert(!root.classList.contains('intro-loading'), 'Failure must unlock scrolling');
-  console.log('PASS: complete-download gate, decoded-frame gate, reverse intro wheel gate, retained reverse scroll, cleanup, no autoplay');
+  console.log('PASS: complete-download gate, decoded-frame gate, bidirectional homepage wheel gate, retained reverse scroll, cleanup, no autoplay');
 })().catch(error => { console.error(error); process.exitCode = 1; });
