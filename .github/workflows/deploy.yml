@@ -33,6 +33,9 @@ jobs:
       - name: Test intro behavior
         run: node tests/intro-loading.cjs
 
+      - name: Validate hero CSS cleanup
+        run: node tests/hero-css-cleanup.cjs
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
