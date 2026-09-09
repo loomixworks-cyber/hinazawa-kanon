@@ -40,6 +40,10 @@
   let videoUnavailable = false;
   let disposed = false;
   let active = null;
+  const reverseWheelGate = matchMedia('(min-width: 821px)');
+  const reverseGateQuietMs = 220;
+  let reverseGateTimer = 0;
+  let reverseGateState = 'idle';
   const loading = overlay.querySelector('.kanon-intro-loading');
   const loadingLabel = overlay.querySelector('.kanon-intro-loading-label');
   const hint = overlay.querySelector('.kanon-intro-hint');
@@ -93,6 +97,7 @@
     removeRender();
     resizeObserver.disconnect();
     clearTimeout(window.kanonIntroWatchdog);
+    clearTimeout(reverseGateTimer);
     releaseVideo();
     journey.replaceWith(hero);
     overlay.remove();
@@ -108,6 +113,57 @@
   function requestFrame() {
     if (!disposed) scheduler.request();
   }
+
+  function scheduleReverseGateArm() {
+    clearTimeout(reverseGateTimer);
+    reverseGateTimer = setTimeout(() => {
+      if (reverseGateState === 'holding') reverseGateState = 'armed';
+    }, reverseGateQuietMs);
+  }
+
+  function handleReverseWheelGate(event) {
+    if (!reverseWheelGate.matches || event.ctrlKey || event.deltaY >= 0) return;
+
+    const scale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? innerHeight : 1;
+    const deltaY = event.deltaY * scale;
+
+    // Only intervene when one upward wheel gesture would cross from the
+    // homepage into the reverse intro. Forward/downward scrolling is untouched.
+    if (reverseGateState === 'idle') {
+      if (scrollY > distance && scrollY + deltaY > distance) return;
+      if (scrollY < distance) return;
+
+      event.preventDefault();
+      reverseGateState = 'holding';
+      scrollTo({ top: distance, behavior: 'instant' });
+      scheduleReverseGateArm();
+      requestFrame();
+      return;
+    }
+
+    // Consume the rest of the same wheel/trackpad momentum at the homepage top.
+    if (reverseGateState === 'holding') {
+      event.preventDefault();
+      scrollTo({ top: distance, behavior: 'instant' });
+      scheduleReverseGateArm();
+      requestFrame();
+      return;
+    }
+
+    // The next distinct upward gesture enters the reverse intro, but its first
+    // step is capped so the ending frame is visible instead of being skipped.
+    if (reverseGateState === 'armed' && scrollY >= distance) {
+      event.preventDefault();
+      reverseGateState = 'released';
+      clearTimeout(reverseGateTimer);
+      const entryStep = Math.min(Math.abs(deltaY), 140);
+      scrollTo({ top: Math.max(0, distance - entryStep), behavior: 'instant' });
+      requestFrame();
+    }
+  }
+
+  window.addEventListener('wheel', handleReverseWheelGate, { passive: false, signal: events.signal });
+
   function seek() {
     const v = video;
     // Metadata is enough to request a frame. Waiting for decoded data can
@@ -221,6 +277,9 @@
     if (disposed) return;
     progress = clamp(scrollY / distance);
     const isActive = progress < 1;
+    if (!isActive && scrollY > distance + 1 && reverseGateState === 'released') {
+      reverseGateState = 'idle';
+    }
     // After the final transition, no style writes or seeks below the intro.
     if (!isActive && active === false) return;
     if (active !== isActive) {
