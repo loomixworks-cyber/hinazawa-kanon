@@ -31,7 +31,7 @@ done
 
 # QR stays PNG for maximum scanner reliability, but cap needless source resolution.
 if [ -f assets/images/kanon-qr.png ]; then
-  magick assets/images/kanon-qr.png -resize '960x960>' -strip -define png:compression-level=9 assets/images/kanon-qr.optimized.png
+  convert assets/images/kanon-qr.png -resize '960x960>' -strip -define png:compression-level=9 assets/images/kanon-qr.optimized.png
   if [ "$(stat -c%s assets/images/kanon-qr.optimized.png)" -lt "$(stat -c%s assets/images/kanon-qr.png)" ]; then
     mv assets/images/kanon-qr.optimized.png assets/images/kanon-qr.png
   else
@@ -41,7 +41,7 @@ fi
 
 # Favicon is displayed tiny. Preserve PNG compatibility while removing oversized pixels/metadata.
 if [ -f assets/images/favicon.png ]; then
-  magick assets/images/favicon.png -resize '512x512>' -strip -define png:compression-level=9 assets/images/favicon.optimized.png
+  convert assets/images/favicon.png -resize '512x512>' -strip -define png:compression-level=9 assets/images/favicon.optimized.png
   if [ "$(stat -c%s assets/images/favicon.optimized.png)" -lt "$(stat -c%s assets/images/favicon.png)" ]; then
     mv assets/images/favicon.optimized.png assets/images/favicon.png
   else
