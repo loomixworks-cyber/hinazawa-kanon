@@ -1,0 +1,30 @@
+name: Inspect intro video quality
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/inspect-video.yml'
+      - 'scripts/inspect-video.sh'
+
+permissions:
+  contents: write
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Inspect videos
+        run: bash scripts/inspect-video.sh
+      - name: Commit metadata report
+        run: |
+          cp .tmp/video-metadata.json video-metadata.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add video-metadata.json
+          git commit -m "Record intro video metadata" || exit 0
+          git push
