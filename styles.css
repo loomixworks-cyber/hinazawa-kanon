@@ -3992,3 +3992,43 @@ body.game-warning-open {
     transform: translateY(calc(-100% - 28px));
   }
 }
+
+
+/* Lightweight desktop pointer glow */
+.pointer-glow {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 6;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  contain: strict;
+  background:
+    radial-gradient(circle at 50% 50%,
+      rgba(255,255,255,.34) 0 5%,
+      rgba(255,154,215,.18) 18%,
+      rgba(91,198,255,.10) 38%,
+      rgba(141,114,255,.045) 54%,
+      transparent 70%);
+  transform: translate3d(0,0,0);
+  transition: opacity .16s ease;
+}
+
+.pointer-glow.is-visible {
+  opacity: .78;
+}
+
+@media (max-width: 900px), (hover: none), (pointer: coarse) {
+  .pointer-glow {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pointer-glow {
+    display: none !important;
+  }
+}
