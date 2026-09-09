@@ -40,10 +40,11 @@
   let videoUnavailable = false;
   let disposed = false;
   let active = null;
-  const reverseWheelGate = matchMedia('(min-width: 821px)');
-  const reverseGateQuietMs = 220;
-  let reverseGateTimer = 0;
-  let reverseGateState = 'idle';
+  const boundaryWheelGate = matchMedia('(min-width: 821px)');
+  const boundaryGateQuietMs = 220;
+  let boundaryGateTimer = 0;
+  let boundaryGateState = 'idle';
+  let boundaryGateDirection = 0;
   const loading = overlay.querySelector('.kanon-intro-loading');
   const loadingLabel = overlay.querySelector('.kanon-intro-loading-label');
   const hint = overlay.querySelector('.kanon-intro-hint');
@@ -97,7 +98,7 @@
     removeRender();
     resizeObserver.disconnect();
     clearTimeout(window.kanonIntroWatchdog);
-    clearTimeout(reverseGateTimer);
+    clearTimeout(boundaryGateTimer);
     releaseVideo();
     journey.replaceWith(hero);
     overlay.remove();
@@ -114,55 +115,70 @@
     if (!disposed) scheduler.request();
   }
 
-  function scheduleReverseGateArm() {
-    clearTimeout(reverseGateTimer);
-    reverseGateTimer = setTimeout(() => {
-      if (reverseGateState === 'holding') reverseGateState = 'armed';
-    }, reverseGateQuietMs);
+  function scheduleBoundaryGateArm() {
+    clearTimeout(boundaryGateTimer);
+    boundaryGateTimer = setTimeout(() => {
+      if (boundaryGateState === 'holding') boundaryGateState = 'armed';
+    }, boundaryGateQuietMs);
   }
 
-  function handleReverseWheelGate(event) {
-    if (!reverseWheelGate.matches || event.ctrlKey || event.deltaY >= 0) return;
+  function handleBoundaryWheelGate(event) {
+    if (!boundaryWheelGate.matches || event.ctrlKey || event.deltaY === 0) return;
 
     const scale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? innerHeight : 1;
     const deltaY = event.deltaY * scale;
+    const direction = Math.sign(deltaY);
+    const nextY = scrollY + deltaY;
 
-    // Only intervene when one upward wheel gesture would cross from the
-    // homepage into the reverse intro. Forward/downward scrolling is untouched.
-    if (reverseGateState === 'idle') {
-      if (scrollY > distance && scrollY + deltaY > distance) return;
-      if (scrollY < distance) return;
+    // If the user changes direction while paused, let them retreat immediately.
+    if ((boundaryGateState === 'holding' || boundaryGateState === 'armed') &&
+        direction !== boundaryGateDirection) {
+      clearTimeout(boundaryGateTimer);
+      boundaryGateState = 'idle';
+      boundaryGateDirection = 0;
+      return;
+    }
 
+    if (boundaryGateState === 'idle') {
+      const crossesDown = direction > 0 && scrollY < distance && nextY >= distance;
+      const crossesUp = direction < 0 && scrollY > distance && nextY <= distance;
+      if (!crossesDown && !crossesUp) return;
+
+      // Land exactly on the completed homepage frame and absorb the remaining
+      // momentum from this wheel/trackpad gesture.
       event.preventDefault();
-      reverseGateState = 'holding';
+      boundaryGateState = 'holding';
+      boundaryGateDirection = direction;
       scrollTo({ top: distance, behavior: 'instant' });
-      scheduleReverseGateArm();
+      scheduleBoundaryGateArm();
       requestFrame();
       return;
     }
 
-    // Consume the rest of the same wheel/trackpad momentum at the homepage top.
-    if (reverseGateState === 'holding') {
+    if (boundaryGateState === 'holding') {
       event.preventDefault();
       scrollTo({ top: distance, behavior: 'instant' });
-      scheduleReverseGateArm();
+      scheduleBoundaryGateArm();
       requestFrame();
       return;
     }
 
-    // The next distinct upward gesture enters the reverse intro, but its first
-    // step is capped so the ending frame is visible instead of being skipped.
-    if (reverseGateState === 'armed' && scrollY >= distance) {
+    // After the wheel stream has gone quiet, the next gesture crosses the
+    // boundary gently. This preserves both the forward reveal and reverse intro.
+    if (boundaryGateState === 'armed' && direction === boundaryGateDirection) {
       event.preventDefault();
-      reverseGateState = 'released';
-      clearTimeout(reverseGateTimer);
+      boundaryGateState = 'released';
+      clearTimeout(boundaryGateTimer);
       const entryStep = Math.min(Math.abs(deltaY), 140);
-      scrollTo({ top: Math.max(0, distance - entryStep), behavior: 'instant' });
+      scrollTo({
+        top: Math.max(0, distance + boundaryGateDirection * entryStep),
+        behavior: 'instant'
+      });
       requestFrame();
     }
   }
 
-  window.addEventListener('wheel', handleReverseWheelGate, { passive: false, signal: events.signal });
+  window.addEventListener('wheel', handleBoundaryWheelGate, { passive: false, signal: events.signal });
 
   function seek() {
     const v = video;
@@ -277,8 +293,10 @@
     if (disposed) return;
     progress = clamp(scrollY / distance);
     const isActive = progress < 1;
-    if (!isActive && scrollY > distance + 1 && reverseGateState === 'released') {
-      reverseGateState = 'idle';
+    if (boundaryGateState === 'released' &&
+        Math.abs(scrollY - distance) > 1) {
+      boundaryGateState = 'idle';
+      boundaryGateDirection = 0;
     }
     // After the final transition, no style writes or seeks below the intro.
     if (!isActive && active === false) return;
