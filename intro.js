@@ -229,7 +229,7 @@
     overlay.style.setProperty('--intro-opacity', (1 - reveal).toFixed(4));
     overlay.style.setProperty('--intro-hint', (1 - ease(progress / .12)).toFixed(4));
     root.style.setProperty('--intro-reveal', reveal.toFixed(4));
-    if (!active) { releaseVideo(); return; }
+    // Keep the decoded intro in memory while this page stays open so returning\n    // to the top never triggers a second download/loading screen.\n    if (!active) return;
     loadVideo();
     if (!video) return;
     const t = clamp(progress / .82) * 6;
