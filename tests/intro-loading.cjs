@@ -47,7 +47,8 @@ function element() {
       createElement(tag) {
         const e = element();
         if (tag === 'video') {
-          videoCount++;\n          video = e;
+          videoCount++;
+          video = e;
           Object.assign(e, { readyState: 0, duration: 6, currentTime: 0, seeking: false,
             pause() {}, load() {}, play() { throw new Error('Autoplay'); },
             addEventListener: (name, f) => { listeners[name] = f; } });
