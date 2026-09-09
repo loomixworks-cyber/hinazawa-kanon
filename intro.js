@@ -20,16 +20,7 @@
   const ease = value => { const t = clamp(value); return t * t * (3 - 2 * t); };
   const fps = 24;
   const connection = navigator.connection;
-  const mobileViewport = matchMedia('(max-width: 820px)').matches;
-  const effectiveType = connection?.effectiveType || '';
-  const constrainedNetwork = Boolean(connection?.saveData) || /(^|-)2g$/.test(effectiveType);
-  const deviceMemory = Number(navigator.deviceMemory);
-  const logicalCores = Number(navigator.hardwareConcurrency);
-  const constrainedHardware =
-    (Number.isFinite(deviceMemory) && deviceMemory > 0 && deviceMemory <= 4) ||
-    (Number.isFinite(logicalCores) && logicalCores > 0 && logicalCores <= 4);
-  const lowSpecIntro = mobileViewport && (constrainedNetwork || constrainedHardware);
-  const lightweight = mobileViewport || constrainedNetwork;
+  const lightweight = matchMedia('(max-width: 820px)').matches || connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType || '');
   const videoSource = `assets/video/kanon-intro-${lightweight ? 'mobile' : 'desktop'}-scrub.mp4`;
   let download = null;
   let objectURL = null;
@@ -60,14 +51,6 @@
       ? '映像を読み込めませんでした。スクロールで先へ進めます'
       : state === 'slow' ? '読み込みに時間がかかっています。もう少しお待ちください'
       : '映像を準備しています';
-  }
-  if (lowSpecIntro) {
-    // Keep the poster and the mist/reveal transition, but skip video download
-    // and frame seeking on constrained mobile devices.
-    videoUnavailable = true;
-    root.classList.add('intro-lite');
-    overlay.classList.add('is-lite');
-    setLoadingState('ready');
   }
   function showVideo() {
     if (!downloaded || !video || video.readyState < 2) return;
@@ -107,12 +90,10 @@
     journey.replaceWith(hero);
     overlay.remove();
     root.classList.remove('intro-pending', 'intro-enabled', 'intro-active');
-    root.classList.remove('intro-lite');
     root.style.removeProperty('--intro-reveal');
     inertState.forEach(([el, inert]) => { el.inert = inert; });
     delete window.kanonIntroDistance;
     delete window.kanonIntroFinish;
-    delete window.kanonIntroMode;
     scrollTo({ top: y, behavior: 'instant' });
     if (returnFocus) document.querySelector('.brand')?.focus({ preventScroll: true });
     window.dispatchEvent(new Event('scroll'));
@@ -262,7 +243,6 @@
   }
   const resizeObserver = new ResizeObserver(measure);
   window.kanonIntroFinish = dispose;
-  window.kanonIntroMode = lowSpecIntro ? 'lite' : 'video';
   clearTimeout(window.kanonIntroWatchdog);
   root.classList.add('intro-enabled', 'intro-active');
   root.classList.remove('intro-pending');

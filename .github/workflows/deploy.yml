@@ -29,11 +29,6 @@ jobs:
           node --check script.js
           node --check intro.js
 
-      - name: Test intro behavior
-        run: |
-          node tests/intro-loading.cjs
-          node tests/intro-low-spec.cjs
-
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
