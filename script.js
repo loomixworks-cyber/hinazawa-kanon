@@ -4,6 +4,7 @@ const menuButton = document.querySelector(".menu-button");
 const navLinks = [...document.querySelectorAll(".site-nav a")];
 const cursorLight = document.querySelector(".cursor-light");
 const character = document.querySelector(".character");
+const contentScrollY = () => Math.max(0, window.scrollY - (window.kanonIntroDistance || 0));
 
 window.addEventListener("load", () => {
   body.classList.add("loaded");
@@ -11,9 +12,9 @@ window.addEventListener("load", () => {
 
 window.setTimeout(() => body.classList.add("loaded"), 1200);
 const updateHeaderState = () => {
-  const isScrolled = window.scrollY > 24;
+  const isScrolled = contentScrollY() > 24;
   header?.classList.toggle("is-scrolled", isScrolled);
-  body.classList.toggle("mobile-header-visible", window.scrollY > 120 || body.classList.contains("nav-open"));
+  body.classList.toggle("mobile-header-visible", contentScrollY() > 120 || body.classList.contains("nav-open"));
 };
 
 window.addEventListener("scroll", updateHeaderState, { passive: true });
@@ -103,7 +104,7 @@ const updateScrollMotion = () => {
   progressBar?.style.setProperty("--scroll-progress", `${progress * 100}%`);
 
   if (reduceMotion.matches || window.matchMedia("(max-width: 900px)").matches) return;
-  const heroOffset = Math.min(1, window.scrollY / Math.max(1, window.innerHeight));
+  const heroOffset = Math.min(1, contentScrollY() / Math.max(1, window.innerHeight));
   heroCopy?.style.setProperty("translate", `0 ${heroOffset * -16}px`);
   heroStage?.style.setProperty("translate", `0 ${heroOffset * 24}px`);
 };
