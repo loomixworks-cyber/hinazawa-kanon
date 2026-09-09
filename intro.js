@@ -40,11 +40,6 @@
   let videoUnavailable = false;
   let disposed = false;
   let active = null;
-  const boundaryWheelGate = matchMedia('(min-width: 821px)');
-  const boundaryGateQuietMs = 220;
-  let boundaryGateTimer = 0;
-  let boundaryGateState = 'idle';
-  let boundaryGateDirection = 0;
   const loading = overlay.querySelector('.kanon-intro-loading');
   const loadingLabel = overlay.querySelector('.kanon-intro-loading-label');
   const hint = overlay.querySelector('.kanon-intro-hint');
@@ -98,7 +93,6 @@
     removeRender();
     resizeObserver.disconnect();
     clearTimeout(window.kanonIntroWatchdog);
-    clearTimeout(boundaryGateTimer);
     releaseVideo();
     journey.replaceWith(hero);
     overlay.remove();
@@ -114,72 +108,6 @@
   function requestFrame() {
     if (!disposed) scheduler.request();
   }
-
-  function scheduleBoundaryGateArm() {
-    clearTimeout(boundaryGateTimer);
-    boundaryGateTimer = setTimeout(() => {
-      if (boundaryGateState === 'holding') boundaryGateState = 'armed';
-    }, boundaryGateQuietMs);
-  }
-
-  function handleBoundaryWheelGate(event) {
-    if (!boundaryWheelGate.matches || event.ctrlKey || event.deltaY === 0) return;
-
-    const scale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? innerHeight : 1;
-    const deltaY = event.deltaY * scale;
-    const direction = Math.sign(deltaY);
-    const nextY = scrollY + deltaY;
-
-    // If the user changes direction while paused, let them retreat immediately.
-    if ((boundaryGateState === 'holding' || boundaryGateState === 'armed') &&
-        direction !== boundaryGateDirection) {
-      clearTimeout(boundaryGateTimer);
-      boundaryGateState = 'idle';
-      boundaryGateDirection = 0;
-      return;
-    }
-
-    if (boundaryGateState === 'idle') {
-      const crossesDown = direction > 0 && scrollY < distance && nextY >= distance;
-      const crossesUp = direction < 0 && scrollY > distance && nextY <= distance;
-      if (!crossesDown && !crossesUp) return;
-
-      // Land exactly on the completed homepage frame and absorb the remaining
-      // momentum from this wheel/trackpad gesture.
-      event.preventDefault();
-      boundaryGateState = 'holding';
-      boundaryGateDirection = direction;
-      scrollTo({ top: distance, behavior: 'instant' });
-      scheduleBoundaryGateArm();
-      requestFrame();
-      return;
-    }
-
-    if (boundaryGateState === 'holding') {
-      event.preventDefault();
-      scrollTo({ top: distance, behavior: 'instant' });
-      scheduleBoundaryGateArm();
-      requestFrame();
-      return;
-    }
-
-    // After the wheel stream has gone quiet, the next gesture crosses the
-    // boundary gently. This preserves both the forward reveal and reverse intro.
-    if (boundaryGateState === 'armed' && direction === boundaryGateDirection) {
-      event.preventDefault();
-      boundaryGateState = 'released';
-      clearTimeout(boundaryGateTimer);
-      const entryStep = Math.min(Math.abs(deltaY), 140);
-      scrollTo({
-        top: Math.max(0, distance + boundaryGateDirection * entryStep),
-        behavior: 'instant'
-      });
-      requestFrame();
-    }
-  }
-
-  window.addEventListener('wheel', handleBoundaryWheelGate, { passive: false, signal: events.signal });
-
   function seek() {
     const v = video;
     // Metadata is enough to request a frame. Waiting for decoded data can
@@ -293,11 +221,6 @@
     if (disposed) return;
     progress = clamp(scrollY / distance);
     const isActive = progress < 1;
-    if (boundaryGateState === 'released' &&
-        Math.abs(scrollY - distance) > 1) {
-      boundaryGateState = 'idle';
-      boundaryGateDirection = 0;
-    }
     // After the final transition, no style writes or seeks below the intro.
     if (!isActive && active === false) return;
     if (active !== isActive) {

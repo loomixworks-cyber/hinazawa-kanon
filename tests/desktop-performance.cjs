@@ -31,6 +31,16 @@ assert(script.includes('const y = (event.clientY / window.innerHeight - 0.5) * 8
 assert(script.includes('character.style.translate = "0 0";'));
 assert(css.includes('.character {\n    transition: translate .11s ease-out;\n  }'));
 
+assert(script.includes('pointerGlow.className = "pointer-glow";'));
+assert(script.includes('pointerGlow.style.translate ='));
+assert(script.includes('pointerGlow.classList.add("is-visible");'));
+assert(css.includes('/* Lightweight desktop pointer glow */'));
+assert(css.includes('.pointer-glow {'));
+assert(css.includes('radial-gradient('));
+assert(!css.match(/\.pointer-glow[\s\S]{0,800}filter\s*:/), 'pointer glow must not use filter');
+assert(!css.match(/\.pointer-glow[\s\S]{0,800}backdrop-filter\s*:/), 'pointer glow must not use backdrop-filter');
+assert(!css.match(/\.pointer-glow[\s\S]{0,800}mix-blend-mode\s*:/), 'pointer glow must not use blend modes');
+
 assert(css.includes('/* Desktop header stays at the top of the homepage only */'));
 assert(css.includes('body.desktop-header-hidden .site-header {'));
 assert(css.includes('transform: translateY(calc(-100% - 28px));'));
