@@ -59,6 +59,7 @@ function element() {
   };
   ctx.window = ctx;
   const flush = () => { while (frames.length) frames.shift()(); };
+  vm.runInNewContext(fs.readFileSync('motion.js', 'utf8'), ctx);
   vm.runInNewContext(fs.readFileSync('intro.js', 'utf8'), ctx);
   flush();
   await new Promise(setImmediate);
@@ -83,7 +84,11 @@ function element() {
   assert(video.currentTime < forward);
 
   // Crossing into the homepage must keep the completed Blob/video alive.
+  const lastVisibleTime = video.currentTime;
   ctx.scrollY = 4000; listeners.seeked(); flush();
+  assert.equal(video.currentTime, lastVisibleTime, 'Hidden intro must not seek');
+  ctx.scrollY = 4500; listeners.seeked(); flush();
+  assert.equal(video.currentTime, lastVisibleTime, 'Scrolling below intro must not seek');
   assert.equal(revoked, false, 'Leaving the intro must retain the Blob for reverse scrolling');
   assert.equal(fetchCount, 1, 'Leaving the intro must not trigger another download');
   assert.equal(videoCount, 1, 'Leaving the intro must keep the same video element');
@@ -92,6 +97,17 @@ function element() {
   ctx.scrollY = 300; listeners.seeked(); flush();
   assert.equal(fetchCount, 1, 'Returning to intro must reuse the existing download');
   assert.equal(videoCount, 1, 'Returning to intro must reuse the existing video element');
+  assert(video.currentTime < lastVisibleTime, 'Returning to intro must resume seeking');
+
+  let updates = 0;
+  const unsubscribe = ctx.kanonMotion.add(() => updates++);
+  for (let i = 0; i < 30; i++) ctx.kanonMotion.request();
+  assert.equal(frames.length, 1, 'Scroll/media/pointer requests share one frame');
+  flush();
+  assert.equal(updates, 1);
+  unsubscribe();
+  ctx.kanonMotion.request(); flush();
+  assert.equal(updates, 1, 'Disposed handlers must stop');
 
   listeners.error();
   assert(revoked, 'Release blob memory on failure');

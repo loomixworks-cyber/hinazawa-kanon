@@ -4,6 +4,11 @@ const menuButton = document.querySelector(".menu-button");
 const navLinks = [...document.querySelectorAll(".site-nav a")];
 const cursorLight = document.querySelector(".cursor-light");
 const character = document.querySelector(".character");
+const richHero = document.querySelector(".hero");
+const scheduler = window.kanonMotion;
+const compactMotion = matchMedia("(max-width: 900px)");
+let lastPageScroll = -1;
+let latestPointer = null;
 const contentScrollY = () => Math.max(0, window.scrollY - (window.kanonIntroDistance || 0));
 
 window.addEventListener("load", () => {
@@ -17,8 +22,6 @@ const updateHeaderState = () => {
   body.classList.toggle("mobile-header-visible", contentScrollY() > 120 || body.classList.contains("nav-open"));
 };
 
-window.addEventListener("scroll", updateHeaderState, { passive: true });
-window.addEventListener("resize", updateHeaderState);
 updateHeaderState();
 
 menuButton?.addEventListener("click", () => {
@@ -36,10 +39,18 @@ navLinks.forEach((link) => {
 });
 
 window.addEventListener("pointermove", (event) => {
-  if (document.documentElement.classList.contains("intro-active")) return;
+  if (document.documentElement.classList.contains("intro-active") || reduceMotion.matches || compactMotion.matches) return;
+  latestPointer = { clientX: event.clientX, clientY: event.clientY };
+  scheduler.request();
+}, { passive: true });
+
+function updatePointerMotion() {
+  const event = latestPointer;
+  latestPointer = null;
+  if (!event || document.documentElement.classList.contains("intro-active")) return;
   cursorLight?.style.setProperty("transform", `translate3d(${event.clientX - 180}px, ${event.clientY - 180}px, 0)`);
 
-  const richHero = document.querySelector(".hero");
+  if (richHero?.classList.contains("motion-offscreen")) return;
   richHero?.style.setProperty("--rich-back-x", `${(event.clientX / window.innerWidth - .5) * -18}px`);
   richHero?.style.setProperty("--rich-back-y", `${(event.clientY / window.innerHeight - .5) * -14}px`);
   richHero?.style.setProperty("--rich-front-x", `${(event.clientX / window.innerWidth - .5) * 34}px`);
@@ -49,7 +60,7 @@ window.addEventListener("pointermove", (event) => {
   const x = (event.clientX / window.innerWidth - 0.5) * 18;
   const y = (event.clientY / window.innerHeight - 0.5) * 14;
   character.style.translate = `${x}px ${y}px`;
-});
+}
 
 const revealObserver = new IntersectionObserver(
   (entries) => {
@@ -99,20 +110,44 @@ const heroStage = document.querySelector(".hero-stage");
 const motionCards = [...document.querySelectorAll(".short-card, .long-video-card, .goods-card, .news-list a, .site-qr")];
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
+// Visibility gates CSS animations, including pseudo-elements, without layout polling.
+const animationObserver = new IntersectionObserver(entries => {
+  for (const entry of entries) entry.target.classList.toggle('motion-offscreen', !entry.isIntersecting);
+}, { threshold: 0 });
+document.querySelectorAll('main > section, .hero, .site-footer').forEach(element => {
+  element.classList.add('motion-offscreen');
+  animationObserver.observe(element);
+});
+
 const updateScrollMotion = () => {
   const scrollMax = document.documentElement.scrollHeight - window.innerHeight;
   const progress = scrollMax > 0 ? Math.min(1, window.scrollY / scrollMax) : 0;
   progressBar?.style.setProperty("--scroll-progress", `${progress * 100}%`);
 
-  if (reduceMotion.matches || window.matchMedia("(max-width: 900px)").matches) return;
+  if (document.documentElement.classList.contains('intro-active') || richHero?.classList.contains('motion-offscreen') || reduceMotion.matches || compactMotion.matches) return;
   const heroOffset = Math.min(1, contentScrollY() / Math.max(1, window.innerHeight));
   heroCopy?.style.setProperty("translate", `0 ${heroOffset * -16}px`);
   heroStage?.style.setProperty("translate", `0 ${heroOffset * 24}px`);
 };
 
-window.addEventListener("scroll", updateScrollMotion, { passive: true });
-window.addEventListener("resize", updateScrollMotion);
-updateScrollMotion();
+window.addEventListener('resize', () => { lastPageScroll = -1; });
+window.addEventListener('load', () => { lastPageScroll = -1; scheduler.request(); });
+const pageSizeObserver = new ResizeObserver(() => { lastPageScroll = -1; scheduler.request(); });
+pageSizeObserver.observe(body);
+scheduler.add(() => {
+  if (document.documentElement.classList.contains('intro-active')) {
+    lastPageScroll = -1;
+    latestPointer = null;
+    return;
+  }
+  if (lastPageScroll !== scrollY) {
+    lastPageScroll = scrollY;
+    updateHeaderState();
+    updateScrollMotion();
+  }
+  updatePointerMotion();
+});
+scheduler.request();
 
 if (!reduceMotion.matches) {
   motionCards.forEach((card) => {

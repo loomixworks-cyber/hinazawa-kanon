@@ -28,7 +28,13 @@
   let distance = Math.max(2400, innerHeight * 4);
   let viewportWidth = innerWidth;
   let progress = 0;
-  let frame = 0;
+  const scheduler = window.kanonMotion;
+  const styleValues = new Map();
+  function setStyle(element, name, value) {
+    if (styleValues.get(name) === value) return;
+    styleValues.set(name, value);
+    element.style.setProperty(name, value);
+  }
   let video = null;
   let loadingTimer, seekTimer;
   let videoUnavailable = false;
@@ -54,6 +60,7 @@
   }
   function showVideo() {
     if (!downloaded || !video || video.readyState < 2) return;
+    if (loadingState === 'ready') return;
     overlay.classList.add('is-ready');
     clearTimeout(loadingTimer);
     setLoadingState('ready');
@@ -83,7 +90,7 @@
     const y = Math.max(0, scrollY - distance);
     const returnFocus = overlay.contains(document.activeElement);
     events.abort();
-    cancelAnimationFrame(frame);
+    removeRender();
     resizeObserver.disconnect();
     clearTimeout(window.kanonIntroWatchdog);
     releaseVideo();
@@ -99,7 +106,7 @@
     window.dispatchEvent(new Event('scroll'));
   }
   function requestFrame() {
-    if (!disposed && !frame && !document.hidden) frame = requestAnimationFrame(render);
+    if (!disposed) scheduler.request();
   }
   function seek() {
     const v = video;
@@ -211,9 +218,11 @@
     requestFrame();
   }
   function render() {
-    frame = 0;
+    if (disposed) return;
     progress = clamp(scrollY / distance);
     const isActive = progress < 1;
+    // After the final transition, no style writes or seeks below the intro.
+    if (!isActive && active === false) return;
     if (active !== isActive) {
       active = isActive;
       const returnFocus = overlay.contains(document.activeElement);
@@ -225,11 +234,12 @@
     }
     const mist = ease((progress - .738) / .082);
     const reveal = ease((progress - .84) / .16);
-    overlay.style.setProperty('--intro-mist', mist.toFixed(4));
-    overlay.style.setProperty('--intro-opacity', (1 - reveal).toFixed(4));
-    overlay.style.setProperty('--intro-hint', (1 - ease(progress / .12)).toFixed(4));
-    root.style.setProperty('--intro-reveal', reveal.toFixed(4));
-    // Keep the decoded intro in memory while this page stays open so returning\n    // to the top never triggers a second download/loading screen.\n    if (!active) return;
+    setStyle(overlay, '--intro-mist', mist.toFixed(4));
+    setStyle(overlay, '--intro-opacity', (1 - reveal).toFixed(4));
+    setStyle(overlay, '--intro-hint', (1 - ease(progress / .12)).toFixed(4));
+    setStyle(root, '--intro-reveal', reveal.toFixed(4));
+    // Retain the video for reverse scrolling without updating it off screen.
+    if (!active) return;
     loadVideo();
     if (!video) return;
     const t = clamp(progress / .82) * 6;
@@ -238,15 +248,15 @@
     while (i < points.length - 1 && t > points[i][0]) i++;
     const [a, b] = [points[i - 1], points[i]];
     const focus = a[1] + (b[1] - a[1]) * ease((t - a[0]) / (b[0] - a[0]));
-    overlay.style.setProperty('--intro-focus', `${focus.toFixed(2)}%`);
+    setStyle(overlay, '--intro-focus', `${focus.toFixed(2)}%`);
     seek();
   }
   const resizeObserver = new ResizeObserver(measure);
+  const removeRender = scheduler.add(render);
   window.kanonIntroFinish = dispose;
   clearTimeout(window.kanonIntroWatchdog);
   root.classList.add('intro-enabled', 'intro-active');
   root.classList.remove('intro-pending');
-  window.addEventListener('scroll', requestFrame, { ...options, passive: true });
   window.addEventListener('resize', measure, options);
   document.addEventListener('visibilitychange', requestFrame, options);
   window.addEventListener('pagehide', releaseVideo, options);

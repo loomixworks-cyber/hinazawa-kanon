@@ -3697,11 +3697,11 @@ body.game-warning-open {
   border:1px solid rgba(255,255,255,.42);
   border-radius:50%;
   opacity:.52;
-  filter:blur(1px) drop-shadow(0 20px 45px rgba(82,105,197,.12));
+  filter:none;
   background:
     linear-gradient(120deg,rgba(255,255,255,.04),rgba(255,120,201,.17),rgba(94,203,255,.14),rgba(255,255,255,.03));
   box-shadow:inset 0 0 80px rgba(255,255,255,.18);
-  backdrop-filter:blur(2px);
+  backdrop-filter:none;
 }
 
 .rich-aurora::after {
@@ -3819,13 +3819,13 @@ body.game-warning-open {
   width:clamp(240px,34vw,560px);
   height:clamp(90px,15vw,220px);
   border-radius:50%;
-  filter:blur(52px);
+  filter:none;
   opacity:.45;
   animation:richDrift 8s ease-in-out infinite alternate;
 }
 
-.rich-light-pink { right:13%; top:18%; background:rgba(255,60,170,.38); }
-.rich-light-blue { right:-4%; bottom:3%; background:rgba(26,170,255,.3); animation-delay:-4s; }
+.rich-light-pink { right:13%; top:18%; background:radial-gradient(ellipse,rgba(255,60,170,.38),transparent 70%); }
+.rich-light-blue { right:-4%; bottom:3%; background:radial-gradient(ellipse,rgba(26,170,255,.3),transparent 70%); animation-delay:-4s; }
 
 .rich-grid {
   right:-8%;
@@ -3866,7 +3866,7 @@ body.game-warning-open {
   box-shadow:
     inset 10px 14px 26px rgba(255,255,255,.28),
     inset -12px -16px 30px rgba(76,119,222,.13);
-  backdrop-filter:blur(12px) saturate(1.45);
+  backdrop-filter:none;
 }
 
 .rich-lens::after {

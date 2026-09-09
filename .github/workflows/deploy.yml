@@ -28,6 +28,7 @@ jobs:
         run: |
           node --check script.js
           node --check intro.js
+          node --check motion.js
 
       - name: Test intro behavior
         run: node tests/intro-loading.cjs

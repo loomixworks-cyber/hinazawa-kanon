@@ -108,6 +108,12 @@
 .intro-active .hero-copy, .intro-active .hero-stage { transition: none; }
 .intro-active .hero *, .intro-active .hero *::before, .intro-active .hero *::after,
 .intro-active .ambient-stage *, .intro-active .ticker-track { animation-play-state: paused !important; }
+.motion-offscreen, .motion-offscreen *, .motion-offscreen::before, .motion-offscreen::after,
+.motion-offscreen *::before, .motion-offscreen *::after,
+.intro-active main *, .intro-active main *::before, .intro-active main *::after,
+.motion-suspended *, .motion-suspended *::before, .motion-suspended *::after {
+  animation-play-state: paused !important;
+}
 .hero-backdrop::after {
   content: '';
   position: absolute;
