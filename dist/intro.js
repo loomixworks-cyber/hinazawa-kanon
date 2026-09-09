@@ -21,7 +21,7 @@
   const fps = 24;
   const connection = navigator.connection;
   const lightweight = matchMedia('(max-width: 820px)').matches || connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType || '');
-  const videoSource = `assets/video/kanon-intro-${lightweight ? 'mobile' : 'desktop'}-scrub.mp4`;
+  const videoSource = lightweight ? 'assets/video/kanon-intro-mobile-scrub.mp4' : 'assets/video/kanon-intro-desktop-hq.mp4';
   let download = null;
   let objectURL = null;
   let downloaded = false;

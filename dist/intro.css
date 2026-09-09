@@ -1,5 +1,6 @@
 /* Native document scroll pins the hero while the six-second film is scrubbed. */
 .kanon-intro { display: none; }
+.kanon-intro-editorial { display: none; }
 .intro-pending body > :not(.kanon-intro):not(script) { visibility: hidden; }
 .intro-enabled body { overflow-x: clip; }
 .intro-loading, .intro-loading body, .intro-pending, .intro-pending body { overflow: hidden; }
@@ -105,6 +106,8 @@
 .intro-enabled .site-nav { --intro-delay: .12; }
 .intro-enabled .hero-stage { --intro-delay: .2; }
 .intro-active .hero-copy, .intro-active .hero-stage { transition: none; }
+.intro-active .hero *, .intro-active .hero *::before, .intro-active .hero *::after,
+.intro-active .ambient-stage *, .intro-active .ticker-track { animation-play-state: paused !important; }
 .hero-backdrop::after {
   content: '';
   position: absolute;
@@ -117,3 +120,60 @@
   .kanon-intro-hint { bottom: max(28px, calc(env(safe-area-inset-bottom) + 16px)); }
 }
 @media (prefers-reduced-motion: reduce) { .kanon-intro { display: none !important; } }
+
+/* Desktop: a full portrait film, with typography in the space beside it. */
+@media (min-width: 1000px) and (min-aspect-ratio: 4/3) {
+  .intro-pending .kanon-intro, .intro-enabled .kanon-intro {
+    --film-height: min(88dvh, 1120px);
+    --film-width: calc(var(--film-height) * .5625);
+    --film-right: clamp(56px, 9vw, 240px);
+    --editorial-left: clamp(48px, 8vw, 200px);
+    --editorial-width: calc(100vw - var(--film-width) - var(--film-right) - var(--editorial-left) - 64px);
+    background: radial-gradient(ellipse at 78% 45%, #e8dff3, transparent 62%), #fff9fc;
+  }
+  .kanon-intro-video, .kanon-intro-poster {
+    inset: 50% var(--film-right) auto auto;
+    translate: 0 -50%;
+    width: var(--film-width);
+    height: var(--film-height);
+    object-fit: contain;
+    object-position: center;
+    border-radius: 4px;
+    box-shadow: 0 28px 70px -25px #24113955;
+    background: #10112e;
+  }
+  .kanon-intro-editorial { display: block; color: #29213c; }
+  .intro-edition, .intro-edition-footer {
+    position: absolute; left: var(--editorial-left);
+    font: 500 11px/1.5 Outfit, system-ui, sans-serif; letter-spacing: .2em;
+  }
+  .intro-edition { top: 7dvh; display: flex; align-items: center; gap: 16px; }
+  .intro-edition i { width: 32px; height: 1px; background: #b9a5b6; }
+  .intro-edition-footer { bottom: 6dvh; color: #867389; font-size: 10px; }
+  .intro-title-block { position: absolute; top: 25dvh; left: var(--editorial-left); width: var(--editorial-width); }
+  .intro-overline { font: 500 10px/1.5 Outfit, sans-serif; letter-spacing: .24em; color: #917087; }
+  .intro-wordmark { margin: 10px 0 24px; font: 500 clamp(76px, 9vw, 160px)/.95 Outfit, sans-serif; letter-spacing: -.07em; }
+  .intro-wordmark > span { color: #e670a7; }
+  .intro-tagline { margin: 0 0 22px; font: 500 clamp(20px, 2.1vw, 34px)/1.85 'Zen Maru Gothic', sans-serif; letter-spacing: .08em; }
+  .intro-signature { font: 400 12px/1.6 system-ui, sans-serif; letter-spacing: .12em; color: #7b667b; }
+  .kanon-intro-hint, .kanon-intro-loading {
+    left: var(--editorial-left); bottom: 14dvh; translate: none;
+    width: var(--editorial-width); padding: 0; border-radius: 0;
+    align-items: flex-start; text-align: left; color: #493348;
+    background: none; text-shadow: none;
+  }
+  .kanon-intro-eyebrow { color: #98617f; font-size: 11px; }
+  .kanon-intro-hint p { font-size: 14px; }
+  .kanon-intro-instruction { font-size: 12px; color: #7b667b; }
+  .kanon-intro-arrow { position: absolute; left: 0; top: 0; width: 44px; height: 62px; margin: 0; border-color: #b992a6; }
+  .kanon-intro-hint { padding-left: 66px; box-sizing: border-box; gap: 5px; }
+  .kanon-intro-loading-track { width: min(240px, 100%); background: #e4d4df; }
+  .kanon-intro-loading-track > span { background: linear-gradient(90deg, #a76c9b, #dc81aa); }
+  @media (max-height: 700px) {
+    .intro-title-block { top: 20dvh; }
+    .intro-wordmark { font-size: clamp(64px, 7vw, 100px); margin-bottom: 14px; }
+    .intro-tagline { font-size: 22px; margin-bottom: 10px; }
+    .kanon-intro-hint, .kanon-intro-loading { bottom: 12dvh; }
+    .intro-edition-footer { bottom: 4dvh; }
+  }
+}
