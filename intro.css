@@ -2,6 +2,7 @@
 .kanon-intro { display: none; }
 .intro-pending body > :not(.kanon-intro):not(script) { visibility: hidden; }
 .intro-enabled body { overflow-x: clip; }
+.intro-loading, .intro-loading body, .intro-pending, .intro-pending body { overflow: hidden; }
 .kanon-journey { position: relative; }
 .kanon-stage { position: sticky; top: 0; }
 .intro-pending .kanon-intro, .intro-enabled .kanon-intro {
@@ -71,6 +72,7 @@
 .kanon-intro-loading-track { width: 160px; height: 2px; margin-top: 4px; overflow: hidden; border-radius: 2px; background: #ffffff40; }
 .kanon-intro-loading-track > span { display: block; width: 45%; height: 100%; background: linear-gradient(90deg, transparent, #ffe1ef, white); animation: intro-loading 1.8s ease-in-out infinite; }
 @keyframes intro-loading { from { transform: translateX(-110%); } to { transform: translateX(325%); } }
+.has-load-progress .kanon-intro-loading-track > span { width: 100%; animation: none; transform-origin: left; transform: scaleX(var(--load-progress, 0)); transition: transform .15s linear; }
 .kanon-intro-hint { transition: opacity .5s ease; }
 .intro-pending .kanon-intro-hint, .is-loading .kanon-intro-hint { opacity: 0; }
 .intro-pending .kanon-intro-arrow svg, .is-loading .kanon-intro-arrow svg { animation-play-state: paused; }

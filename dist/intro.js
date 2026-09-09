@@ -21,7 +21,10 @@
   const fps = 24;
   const connection = navigator.connection;
   const lightweight = matchMedia('(max-width: 820px)').matches || connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType || '');
-  const videoSource = `assets/video/kanon-intro-${lightweight ? 'mobile' : 'desktop'}.mp4`;
+  const videoSource = `assets/video/kanon-intro-${lightweight ? 'mobile' : 'desktop'}-scrub.mp4`;
+  let download = null;
+  let objectURL = null;
+  let downloaded = false;
   let distance = Math.max(2400, innerHeight * 4);
   let viewportWidth = innerWidth;
   let progress = 0;
@@ -39,16 +42,18 @@
     if (loadingState === state) return;
     loadingState = state;
     const ready = state === 'ready';
+    root.classList.toggle('intro-loading', !ready && state !== 'error');
     overlay.classList.toggle('is-loading', !ready);
     overlay.classList.toggle('has-video-error', state === 'error');
     loading.hidden = ready;
     hint.setAttribute('aria-hidden', String(!ready));
     loadingLabel.textContent = state === 'error'
       ? '映像を読み込めませんでした。スクロールで先へ進めます'
-      : state === 'slow' ? '読み込みに時間がかかっています。スクロールでも先へ進めます'
+      : state === 'slow' ? '読み込みに時間がかかっています。もう少しお待ちください'
       : '映像を準備しています';
   }
   function showVideo() {
+    if (!downloaded || !video || video.readyState < 2) return;
     overlay.classList.add('is-ready');
     clearTimeout(loadingTimer);
     setLoadingState('ready');
@@ -57,6 +62,10 @@
   function releaseVideo() {
     clearTimeout(loadingTimer);
     clearTimeout(seekTimer);
+    download?.abort();
+    download = null;
+    downloaded = false;
+    root.classList.remove('intro-loading');
     if (!video) return;
     const old = video;
     video = null;
@@ -64,6 +73,8 @@
     old.removeAttribute('src');
     old.load();
     old.remove();
+    if (objectURL) URL.revokeObjectURL(objectURL);
+    objectURL = null;
     overlay.classList.remove('is-ready');
   }
   function dispose() {
@@ -94,7 +105,7 @@
     const v = video;
     // Metadata is enough to request a frame. Waiting for decoded data can
     // deadlock paused videos on browsers that decode only after the first seek.
-    if (!v || v.readyState < 1 || !Number.isFinite(v.duration)) return;
+    if (!downloaded || !v || v.readyState < 1 || !Number.isFinite(v.duration)) return;
     // Seek once per encoded frame, coalescing rapid scroll input while decoding.
     const lastFrame = Math.max(0, Math.round(v.duration * fps) - 1);
     const target = Math.round(clamp(progress / .82) * lastFrame) / fps;
@@ -118,6 +129,7 @@
   function loadVideo() {
     if (video || disposed || videoUnavailable) return;
     setLoadingState('loading');
+    overlay.classList.remove('has-load-progress');
     const v = document.createElement('video');
     video = v;
     v.className = 'kanon-intro-video';
@@ -148,8 +160,42 @@
       if (video === v && !overlay.classList.contains('is-ready')) setLoadingState('slow');
       requestFrame();
     }, 12000);
-    v.src = videoSource;
-    v.load(); // Decode while paused; currentTime is driven exclusively by scroll.
+    const controller = new AbortController();
+    download = controller;
+    (async () => {
+      try {
+        const response = await fetch(videoSource, { signal: controller.signal });
+        if (!response.ok) throw new Error('Video download failed');
+        const total = Number(response.headers.get('content-length'));
+        let blob;
+        if (response.body && total > 0) {
+          const reader = response.body.getReader();
+          const chunks = [];
+          let received = 0;
+          overlay.classList.add('has-load-progress');
+          overlay.style.setProperty('--load-progress', '0');
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            if (video !== v || controller.signal.aborted) return;
+            chunks.push(value);
+            received += value.byteLength;
+            overlay.style.setProperty('--load-progress', String(Math.min(.98, received / total)));
+          }
+          blob = new Blob(chunks, { type: 'video/mp4' });
+        } else {
+          blob = await response.blob();
+        }
+        if (video !== v || controller.signal.aborted) return;
+        objectURL = URL.createObjectURL(blob);
+        downloaded = true;
+        overlay.style.setProperty('--load-progress', '1');
+        v.src = objectURL;
+        v.load(); // No range downloads during scrolling, and no autoplay.
+      } catch (error) {
+        if (video === v && error.name !== 'AbortError') usePoster();
+      }
+    })();
   }
   function measure() {
     if (disposed) return;
