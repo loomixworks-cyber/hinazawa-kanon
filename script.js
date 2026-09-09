@@ -7,14 +7,17 @@ const richHero = document.querySelector(".hero");
 const scheduler = window.kanonMotion;
 const compactMotion = matchMedia("(max-width: 900px)");
 const desktopPointerEffects = matchMedia("(min-width: 901px) and (hover: hover) and (pointer: fine)");
+const desktopHeaderVisibility = matchMedia("(min-width: 821px)");
 let lastPageScroll = -1;
 let latestPointer = null;
 const contentScrollY = () => Math.max(0, window.scrollY - (window.kanonIntroDistance || 0));
 
 const updateHeaderState = () => {
-  const isScrolled = contentScrollY() > 24;
+  const contentY = contentScrollY();
+  const isScrolled = contentY > 24;
   header?.classList.toggle("is-scrolled", isScrolled);
-  body.classList.toggle("mobile-header-visible", contentScrollY() > 120 || body.classList.contains("nav-open"));
+  body.classList.toggle("desktop-header-hidden", desktopHeaderVisibility.matches && isScrolled);
+  body.classList.toggle("mobile-header-visible", contentY > 120 || body.classList.contains("nav-open"));
 };
 
 updateHeaderState();
