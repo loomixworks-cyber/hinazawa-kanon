@@ -31,6 +31,14 @@ assert(script.includes('const y = (event.clientY / window.innerHeight - 0.5) * 8
 assert(script.includes('character.style.translate = "0 0";'));
 assert(css.includes('.character {\n    transition: translate .11s ease-out;\n  }'));
 
+assert(css.includes('/* Desktop header stays at the top of the homepage only */'));
+assert(css.includes('body.desktop-header-hidden .site-header {'));
+assert(css.includes('transform: translateY(calc(-100% - 28px));'));
+assert(script.includes('const desktopHeaderVisibility = matchMedia("(min-width: 821px)");'));
+assert(script.includes('body.classList.toggle("desktop-header-hidden", desktopHeaderVisibility.matches && isScrolled);'));
+assert(css.includes('.site-header{position:fixed;'), 'base header positioning must stay available to mobile');
+assert(!css.includes('.loaded .site-header{position:fixed;'), 'header base rule must not depend on the removed loaded class');
+
 assert(!script.includes('desktopTiltEffects'), 'disabled card tilt code should be removed, not merely gated');
 assert(!script.includes('getBoundingClientRect();'), 'dead card tilt layout reads must stay removed');
 assert(!script.includes('cursorLight'), 'removed cursor-light element must not have JS references');
